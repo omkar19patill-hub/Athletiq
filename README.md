@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="frontend/src/public/Logo/Logo.png" alt="ATHLETIQ — Play More. Plan Less." width="100%">
+</p>
+
 # ATHLETIQ
 
 **Play More. Plan Less.**
