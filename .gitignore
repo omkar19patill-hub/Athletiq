@@ -1,0 +1,31 @@
+# Dependencies and build output
+node_modules/
+frontend/dist/
+backend/target/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.factorypath
+
+# Secrets and local config
+.env
+.env.*
+*.env
+application-local.yml
+application-*.local.yml
+
+# Database dumps and backups
+*.sql.gz
+*dump*.sql
+*backup*.sql
+# Legacy seed with password hashes; demo data comes from DataSeeder (dev profile)
+database/seed.sql
+
+# Logs
+*.log
