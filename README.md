@@ -2,10 +2,6 @@
   <img src="frontend/src/public/Logo/Logo.png" alt="ATHLETIQ — Play More. Plan Less." width="100%">
 </p>
 
-# ATHLETIQ
-
-**Play More. Plan Less.**
-
 ATHLETIQ is a web app for booking sports venues by the hour. Players find a badminton court, football turf or cricket ground, pick a free time slot and book it. Admins manage venues, courts, slots, users and bookings from a dashboard.
 
 ![Java 17](https://img.shields.io/badge/Java-17-orange)
