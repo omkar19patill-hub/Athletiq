@@ -14,4 +14,5 @@ public interface BookingService {
     PagedResponse<BookingResponse> getCustomerBookings(String customerEmail, int page, int size, String status);
     PagedResponse<BookingResponse> getAllBookings(int page, int size, String status);
     BookingResponse updateBookingStatus(Long bookingId, BookingStatus status);
+    BookingResponse rejectBooking(Long bookingId, String reason);
 }

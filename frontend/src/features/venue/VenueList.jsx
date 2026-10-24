@@ -3,8 +3,13 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { venueService } from '../../services/apiServices';
 import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
-import { Search, MapPin, Star, Filter, ArrowUpDown, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { 
+  Search, MapPin, Star, ChevronLeft, ChevronRight, 
+  Navigation, Compass, SlidersHorizontal, ArrowRight, Trophy,
+  LayoutGrid, Map, Columns, ExternalLink 
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { TurfLocationMap } from './TurfLocationMap';
 
 export const VenueList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -16,6 +21,7 @@ export const VenueList = () => {
 
   // Filters state
   const [city, setCity] = useState(searchParams.get('city') || '');
+  const [pincode, setPincode] = useState(searchParams.get('pincode') || '');
   const [sport, setSport] = useState(searchParams.get('sport') || '');
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
@@ -25,6 +31,34 @@ export const VenueList = () => {
   const [sortDir, setSortDir] = useState('desc');
   const [page, setPage] = useState(0);
 
+  // Geolocation, Pincode & Map state
+  const [pincodeInfo, setPincodeInfo] = useState(null);
+  const [resolvingPin, setResolvingPin] = useState(false);
+  const [nearbyActive, setNearbyActive] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [viewMode, setViewMode] = useState('split'); // 'split' | 'grid' | 'map'
+  const [selectedVenueId, setSelectedVenueId] = useState(null);
+  const [userCoords, setUserCoords] = useState(null);
+
+  const centerCoords = pincodeInfo?.latitude && pincodeInfo?.longitude
+    ? { lat: pincodeInfo.latitude, lng: pincodeInfo.longitude }
+    : userCoords;
+
+  // Sync state when URL params change
+  useEffect(() => {
+    const urlCity = searchParams.get('city');
+    const urlPincode = searchParams.get('pincode');
+    const urlSport = searchParams.get('sport');
+    const urlKeyword = searchParams.get('keyword');
+
+    if (urlCity !== null && urlCity !== city) setCity(urlCity);
+    if (urlPincode !== null && urlPincode !== pincode) setPincode(urlPincode);
+    if (urlSport !== null && urlSport !== sport) setSport(urlSport);
+    if (urlKeyword !== null && urlKeyword !== keyword) setKeyword(urlKeyword);
+  }, [searchParams]);
+
   useEffect(() => {
     venueService.getCities()
       .then((res) => {
@@ -33,17 +67,39 @@ export const VenueList = () => {
       .catch(() => {});
   }, []);
 
+  // Real-time PIN code geographic lookup
+  useEffect(() => {
+    if (pincode && pincode.trim().length >= 3) {
+      setResolvingPin(true);
+      venueService.lookupPincode(pincode.trim())
+        .then((res) => {
+          if (res.success && res.data) {
+            setPincodeInfo(res.data);
+          } else {
+            setPincodeInfo(null);
+          }
+        })
+        .catch(() => setPincodeInfo(null))
+        .finally(() => setResolvingPin(false));
+    } else {
+      setPincodeInfo(null);
+    }
+  }, [pincode]);
+
   const fetchVenues = () => {
     setLoading(true);
+    setNearbyActive(false);
+    setLocationError('');
     const params = {
       city: city || undefined,
+      pincode: pincode ? pincode.trim() : undefined,
       sport: sport || undefined,
       keyword: keyword || undefined,
       minPrice: minPrice || undefined,
       maxPrice: maxPrice || undefined,
       minRating: minRating || undefined,
       page,
-      size: 9,
+      size: 12,
       sortBy,
       sortDir,
     };
@@ -59,9 +115,43 @@ export const VenueList = () => {
       .finally(() => setLoading(false));
   };
 
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser.');
+      return;
+    }
+    setLocating(true);
+    setLocationError('');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserCoords({ lat: latitude, lng: longitude });
+        venueService.getNearby({ lat: latitude, lng: longitude, radiusKm: 35 })
+          .then((res) => {
+            if (res.success) {
+              setVenues(res.data);
+              setNearbyActive(true);
+              setTotalPages(1);
+            }
+          })
+          .catch(() => {
+            setLocationError('Unable to fetch nearby arenas.');
+          })
+          .finally(() => setLocating(false));
+      },
+      (err) => {
+        setLocating(false);
+        setLocationError('Location access was denied. You can search by PIN code instead.');
+      },
+      { timeout: 10000 }
+    );
+  };
+
   useEffect(() => {
-    fetchVenues();
-  }, [city, sport, page, sortBy, sortDir]);
+    if (!nearbyActive) {
+      fetchVenues();
+    }
+  }, [city, pincode, sport, minPrice, maxPrice, minRating, sortBy, sortDir, page]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -69,248 +159,514 @@ export const VenueList = () => {
     fetchVenues();
   };
 
+  const sportPills = [
+    { label: 'All Sports', value: '' },
+    { label: '⚽ Football', value: 'FOOTBALL' },
+    { label: '🏏 Cricket', value: 'CRICKET' },
+    { label: '🏸 Badminton', value: 'BADMINTON' },
+    { label: '🏀 Basketball', value: 'BASKETBALL' },
+  ];
+
   return (
-    <div className="min-h-screen bg-surface-background flex flex-col font-sans">
+    <div className="min-h-screen bg-transparent text-slate-200 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
       <Navbar />
 
-      {/* Header Banner */}
-      <div className="bg-slate-900 text-white py-12 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-extrabold tracking-tight">Explore Sports Venues</h1>
-          <p className="text-sm text-slate-400 mt-1">Book top-rated sports turfs, badminton courts and grounds across India</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
+        
+        {/* Header Title & Mode */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold font-display text-white">
+              Explore Sports Venues
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Find and book floodlit turf arenas, badminton courts, and cricket nets.
+            </p>
+          </div>
 
-          {/* Search Bar Form */}
-          <form onSubmit={handleSearchSubmit} className="mt-6 bg-white p-3 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-3 text-slate-800">
-            <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200">
-              <Search className="w-4 h-4 text-slate-400" />
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={handleGetLocation}
+              disabled={locating}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-2 ${
+                nearbyActive 
+                  ? 'bg-emerald-500 text-slate-950 border-emerald-500'
+                  : 'bg-slate-850 hover:bg-slate-800 text-slate-200 border-slate-700/80'
+              }`}
+            >
+              <Navigation className={`w-3.5 h-3.5 ${locating ? 'animate-spin' : nearbyActive ? 'fill-slate-950' : 'text-emerald-400'}`} />
+              <span>{locating ? 'Locating...' : nearbyActive ? 'Near Me (Active)' : 'Near Me (GPS)'}</span>
+            </button>
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="p-2.5 rounded-xl bg-slate-850 border border-slate-700/80 text-slate-300 hover:text-white transition-all text-xs flex items-center gap-1.5"
+            >
+              <SlidersHorizontal className="w-4 h-4 text-slate-400" />
+              <span className="hidden sm:inline font-medium">Filters</span>
+            </button>
+          </div>
+        </div>
+
+        {locationError && (
+          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium">
+            {locationError}
+          </div>
+        )}
+
+        {/* Neo-Brutalist Search Bar */}
+        <div className="p-4 rounded-xl bg-[#0F172A] border-2 border-black shadow-[4px_4px_0px_#000] space-y-3">
+          <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+            
+            {/* Keyword Search */}
+            <div className="lg:col-span-5 relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
                 type="text"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Search by venue name..."
-                className="w-full bg-transparent text-sm focus:outline-none"
+                placeholder="Search arena, club, or locality..."
+                className="w-full pl-9 pr-4 py-2 bg-[#0B0F17] border-2 border-black rounded-lg text-xs text-white placeholder:text-slate-500 shadow-[2px_2px_0px_#000] focus:outline-none focus:shadow-[2px_2px_0px_#00FF87] transition-all"
               />
             </div>
 
-            <div className="w-full sm:w-48 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-slate-400" />
+            {/* City Filter */}
+            <div className="lg:col-span-3">
               <select
                 value={city}
                 onChange={(e) => { setCity(e.target.value); setPage(0); }}
-                className="w-full bg-transparent text-sm focus:outline-none font-medium text-slate-700"
+                className="w-full px-3 py-2 bg-[#0B0F17] border-2 border-black rounded-lg text-xs font-bold text-white shadow-[2px_2px_0px_#000] focus:outline-none focus:shadow-[2px_2px_0px_#00FF87] cursor-pointer"
               >
-                <option value="">All Cities</option>
+                <option value="">All Metro Cities</option>
                 {cities.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
             </div>
 
-            <div className="w-full sm:w-48 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2">
-              <select
-                value={sport}
-                onChange={(e) => { setSport(e.target.value); setPage(0); }}
-                className="w-full bg-transparent text-sm focus:outline-none font-medium text-slate-700"
-              >
-                <option value="">All Sports</option>
-                <option value="FOOTBALL">⚽ Football</option>
-                <option value="CRICKET">🏏 Cricket</option>
-                <option value="BADMINTON">🏸 Badminton</option>
-                <option value="BASKETBALL">🏀 Basketball</option>
-                <option value="TENNIS">🎾 Tennis</option>
-              </select>
+            {/* PIN Code Filter */}
+            <div className="lg:col-span-2 relative">
+              <Compass className="w-3.5 h-3.5 text-[#00FF87] absolute left-3 top-3" />
+              <input
+                type="text"
+                maxLength={6}
+                value={pincode}
+                onChange={(e) => { setPincode(e.target.value); setPage(0); }}
+                placeholder="PIN Code"
+                className="w-full pl-8 pr-3 py-2 bg-[#0B0F17] border-2 border-black rounded-lg text-xs font-bold text-white placeholder:text-slate-500 shadow-[2px_2px_0px_#000] focus:outline-none focus:shadow-[2px_2px_0px_#00FF87]"
+              />
             </div>
 
-            <button
-              type="submit"
-              className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-primary-500/20"
-            >
-              Search
-            </button>
+            {/* Submit Filter Button */}
+            <div className="lg:col-span-2">
+              <button
+                type="submit"
+                className="w-full py-2 px-4 btn-primary text-xs"
+              >
+                Search
+              </button>
+            </div>
+
           </form>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          {/* Sidebar Filters */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="bg-white p-6 rounded-card shadow-soft border border-slate-100 space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4 text-primary-600" /> Filters
-                </h3>
-                <button
-                  onClick={() => {
-                    setCity('');
-                    setSport('');
-                    setKeyword('');
-                    setMinPrice('');
-                    setMaxPrice('');
-                    setMinRating('');
-                    setPage(0);
-                  }}
-                  className="text-xs font-bold text-primary-600 hover:underline"
-                >
-                  Reset All
-                </button>
-              </div>
+          {/* Quick Sport Pills */}
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t-2 border-black/40">
+            <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mr-1">Sport:</span>
+            {sportPills.map((pill) => (
+              <button
+                key={pill.value}
+                onClick={() => { setSport(pill.value); setPage(0); }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all border-2 border-black ${
+                  sport === pill.value
+                    ? 'bg-[#00FF87] text-black shadow-[2px_2px_0px_#000]'
+                    : 'bg-[#1E293B] text-slate-300 hover:text-white hover:bg-[#334155] shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none'
+                }`}
+              >
+                {pill.label}
+              </button>
+            ))}
+          </div>
 
-              {/* Price Filter */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Max Price per Hour</label>
-                <input
-                  type="number"
-                  placeholder="e.g. 1500"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary-500"
-                />
-              </div>
-
-              {/* Minimum Rating */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Minimum Rating</label>
-                <div className="space-y-2">
-                  {[4, 3, 2].map((stars) => (
-                    <label key={stars} className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="rating"
-                        checked={minRating === String(stars)}
-                        onChange={() => setMinRating(String(stars))}
-                        className="text-primary-600 focus:ring-primary-500"
-                      />
-                      <span className="flex items-center gap-1">
-                        {stars}+ <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> & above
-                      </span>
-                    </label>
-                  ))}
+          {/* Advanced Drawer Filters */}
+          <AnimatePresence>
+            {showAdvancedFilters && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="pt-3 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-3"
+              >
+                <div>
+                  <label className="block text-[11px] text-slate-400 mb-1">Max Price / hr (₹)</label>
+                  <input
+                    type="number"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    placeholder="e.g. 1500"
+                    className="w-full px-3 py-1.5 bg-slate-800/60 border border-slate-700/70 rounded-lg text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
                 </div>
+                <div>
+                  <label className="block text-[11px] text-slate-400 mb-1">Minimum Rating</label>
+                  <select
+                    value={minRating}
+                    onChange={(e) => setMinRating(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-slate-800/60 border border-slate-700/70 rounded-lg text-xs text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="">Any Rating</option>
+                    <option value="4.0">4.0 ★ & above</option>
+                    <option value="4.5">4.5 ★ & above</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] text-slate-400 mb-1">Sort Order</label>
+                  <select
+                    value={`${sortBy}_${sortDir}`}
+                    onChange={(e) => {
+                      const [by, dir] = e.target.value.split('_');
+                      setSortBy(by);
+                      setSortDir(dir);
+                    }}
+                    className="w-full px-3 py-1.5 bg-slate-800/60 border border-slate-700/70 rounded-lg text-xs text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="createdAt_desc">Latest Added</option>
+                    <option value="name_asc">Venue Name (A-Z)</option>
+                    <option value="city_asc">City Order</option>
+                  </select>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+        </div>
+
+        {/* Results Header */}
+        <div className="space-y-2">
+          {pincode && (
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs">
+              <div className="flex items-center gap-2">
+                <Compass className="w-4 h-4 text-emerald-400" />
+                <span>
+                  Showing venues near: <strong className="text-white">{pincodeInfo ? `${pincodeInfo.area}, ${pincodeInfo.city} (PIN ${pincode})` : `PIN ${pincode}`}</strong>
+                </span>
               </div>
+              <span className="text-slate-400 text-[11px]">
+                Sorted by distance from PIN {pincode}
+              </span>
+            </div>
+          )}
+
+          <div className="flex flex-wrap justify-between items-center gap-3 text-xs text-slate-400">
+            <div className="flex items-center gap-3">
+              <span>Showing <strong className="text-white font-semibold">{venues.length}</strong> venues</span>
+              {nearbyActive && (
+                <span className="text-emerald-400 flex items-center gap-1 font-medium">
+                  <Navigation className="w-3 h-3 fill-emerald-400" /> Sorted by GPS Distance
+                </span>
+              )}
+            </div>
+
+            {/* View Mode Switcher */}
+            <div className="flex items-center bg-slate-900 border border-slate-800 p-1 rounded-xl gap-1">
+              <button
+                type="button"
+                onClick={() => setViewMode('split')}
+                className={`px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all ${
+                  viewMode === 'split'
+                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Split Map View"
+              >
+                <Columns className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Split Radar</span>
+              </button>
 
               <button
-                onClick={() => { setPage(0); fetchVenues(); }}
-                className="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition-colors"
+                type="button"
+                onClick={() => setViewMode('grid')}
+                className={`px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Cards Grid View"
               >
-                Apply Filters
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Grid</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('map')}
+                className={`px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all ${
+                  viewMode === 'map'
+                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Interactive Map Only"
+              >
+                <Map className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Map View</span>
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Venues Grid */}
-          <div className="lg:col-span-9">
-            <div className="flex items-center justify-between mb-6">
-              <span className="text-sm font-semibold text-slate-500">
-                Showing <strong className="text-slate-900">{venues.length}</strong> venues
-              </span>
-
-              {/* Sort dropdown */}
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-slate-500 text-xs font-semibold">Sort by:</span>
-                <select
-                  value={`${sortBy}-${sortDir}`}
-                  onChange={(e) => {
-                    const [b, d] = e.target.value.split('-');
-                    setSortBy(b);
-                    setSortDir(d);
-                  }}
-                  className="bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 focus:outline-none"
+        {/* Venues Content Section */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <div key={n} className="h-80 rounded-2xl bg-slate-900 border border-slate-800 animate-pulse"></div>
+            ))}
+          </div>
+        ) : venues.length === 0 ? (
+          <div className="p-14 text-center rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <Trophy className="w-10 h-10 text-slate-600 mx-auto" />
+            <h3 className="text-lg font-bold text-white">No venues match your search</h3>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              Try adjusting your filters, clearing the PIN code, or expanding your search criteria.
+            </p>
+            <button
+              onClick={() => {
+                setCity('');
+                setPincode('');
+                setSport('');
+                setKeyword('');
+                setMinPrice('');
+                setMaxPrice('');
+                setMinRating('');
+                setNearbyActive(false);
+              }}
+              className="btn-secondary py-2 px-4 text-xs font-medium rounded-lg mt-2"
+            >
+              Reset Filters
+            </button>
+          </div>
+        ) : viewMode === 'map' ? (
+          /* Full Screen Map View */
+          <div className="space-y-4">
+            <TurfLocationMap
+              venues={venues}
+              centerCoords={centerCoords}
+              pincodeInfo={pincodeInfo}
+              selectedVenueId={selectedVenueId}
+              onSelectVenue={(v) => setSelectedVenueId(v.id)}
+              height="650px"
+            />
+          </div>
+        ) : viewMode === 'split' ? (
+          /* High-Tech Split Radar View */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Column: Neo-Brutalist Venue Cards */}
+            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {venues.map((venue) => (
+                <div
+                  key={venue.id}
+                  onClick={() => setSelectedVenueId(venue.id)}
+                  className={`rounded-xl overflow-hidden bg-[#0F172A] border-2 border-black transition-all duration-150 flex flex-col group cursor-pointer ${
+                    selectedVenueId === venue.id 
+                      ? 'shadow-[5px_5px_0px_#00FF87] -translate-x-0.5 -translate-y-0.5' 
+                      : 'shadow-[4px_4px_0px_#000] hover:shadow-[6px_6px_0px_#00FF87] hover:-translate-x-0.5 hover:-translate-y-0.5'
+                  }`}
                 >
-                  <option value="createdAt-desc">Newest First</option>
-                  <option value="name-asc">Name (A-Z)</option>
-                  <option value="name-desc">Name (Z-A)</option>
-                </select>
-              </div>
+                  {/* Image Container */}
+                  <div className="relative h-44 overflow-hidden bg-slate-950 border-b-2 border-black">
+                    <img
+                      src={venue.imageUrls?.[0] || 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=1000'}
+                      alt={venue.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/20"></div>
+
+                    {/* Top Sticker Badges */}
+                    <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
+                      <span className="sticker-badge sticker-volt">
+                        Available
+                      </span>
+                      {venue.distanceKm !== undefined && venue.distanceKm !== null && (
+                        <span className="sticker-badge sticker-cyan">
+                          {venue.distanceKm < 1 ? '< 1 km' : `${venue.distanceKm.toFixed(1)} km`}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="absolute top-2.5 right-2.5 sticker-badge sticker-yellow">
+                      <Star className="w-3 h-3 fill-black text-black" />
+                      {venue.averageRating || '4.8'}
+                    </div>
+
+                    <div className="absolute bottom-2.5 left-2.5 sticker-badge sticker-dark">
+                      <MapPin className="w-3 h-3 text-[#00FF87]" /> {venue.city} • PIN {venue.pincode}
+                    </div>
+                  </div>
+
+                  {/* Card Info */}
+                  <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                    <div>
+                      <h3 className="text-base font-black uppercase text-white group-hover:text-[#00FF87] transition-colors line-clamp-1">
+                        {venue.name}
+                      </h3>
+                      <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                        {venue.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t-2 border-black/40 flex items-center justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-bold uppercase">Starts from</span>
+                        <span className="text-sm font-black text-white">
+                          ₹400 <span className="text-[10px] text-slate-400 font-normal">/ hr</span>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${venue.latitude},${venue.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Get Directions on Google Maps"
+                          onClick={(e) => e.stopPropagation()}
+                          className="p-2 rounded-lg bg-[#1E293B] hover:bg-[#00E5FF] hover:text-black border-2 border-black shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none text-[#00E5FF] transition-all flex items-center justify-center shrink-0"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+
+                        <Link
+                          to={`/venues/${venue.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="btn-primary py-1.5 px-3.5 text-xs font-black rounded-lg flex items-center gap-1"
+                        >
+                          <span>Book</span>
+                          <ArrowRight className="w-3 h-3 stroke-[2.5]" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[1, 2, 3, 4, 5, 6].map((n) => (
-                  <div key={n} className="h-72 bg-white rounded-card animate-pulse"></div>
-                ))}
-              </div>
-            ) : venues.length === 0 ? (
-              <div className="bg-white rounded-card p-12 text-center border border-slate-100">
-                <Search className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-slate-800">No Venues Found</h3>
-                <p className="text-xs text-slate-400 mt-1">Try adjusting your search criteria or removing filters.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {venues.map((venue) => (
-                  <motion.div
-                    key={venue.id}
-                    whileHover={{ y: -4 }}
-                    className="bg-white rounded-card overflow-hidden shadow-soft border border-slate-100 flex flex-col justify-between group"
-                  >
+            {/* Right Column: Sticky Interactive Turf Location Map */}
+            <div className="lg:col-span-5 sticky top-20">
+              <TurfLocationMap
+                venues={venues}
+                centerCoords={centerCoords}
+                pincodeInfo={pincodeInfo}
+                selectedVenueId={selectedVenueId}
+                onSelectVenue={(v) => setSelectedVenueId(v.id)}
+                height="620px"
+              />
+            </div>
+          </div>
+        ) : (
+          /* Classic 3-Column Grid View */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {venues.map((venue) => (
+              <div
+                key={venue.id}
+                className="rounded-xl overflow-hidden bg-[#0F172A] border-2 border-black shadow-[4px_4px_0px_#000] hover:shadow-[6px_6px_0px_#00FF87] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all flex flex-col group"
+              >
+                {/* Image Container */}
+                <div className="relative h-52 overflow-hidden bg-slate-950 border-b-2 border-black">
+                  <img
+                    src={venue.imageUrls?.[0] || 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=1000'}
+                    alt={venue.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/20"></div>
+
+                  {/* Top Badges */}
+                  <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                    <span className="sticker-badge sticker-volt">
+                      Available
+                    </span>
+                    {venue.distanceKm !== undefined && venue.distanceKm !== null && (
+                      <span className="sticker-badge sticker-cyan">
+                        {venue.distanceKm < 1 ? '< 1 km' : `${venue.distanceKm.toFixed(1)} km`}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="absolute top-3 right-3 sticker-badge sticker-yellow">
+                    <Star className="w-3.5 h-3.5 fill-black text-black" />
+                    {venue.averageRating || '4.8'}
+                  </div>
+
+                  {/* City & PIN badge on bottom of picture */}
+                  <div className="absolute bottom-3 left-3 sticker-badge sticker-dark">
+                    <MapPin className="w-3.5 h-3.5 text-[#00FF87]" /> {venue.city} • PIN {venue.pincode}
+                  </div>
+                </div>
+
+                {/* Card Info */}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                  <div>
+                    <h3 className="text-lg font-black uppercase text-white group-hover:text-[#00FF87] transition-colors line-clamp-1">
+                      {venue.name}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">
+                      {venue.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-3.5 border-t-2 border-black/40 flex items-center justify-between gap-3">
                     <div>
-                      <div className="relative h-44 overflow-hidden bg-slate-100">
-                        <img
-                          src={venue.imageUrls?.[0] || 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800'}
-                          alt={venue.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-xs font-bold text-slate-800 flex items-center gap-1 shadow-sm">
-                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                          {venue.averageRating || '4.5'}
-                        </div>
-                      </div>
-                      <div className="p-5">
-                        <div className="text-[11px] font-bold text-primary-600 uppercase tracking-wider mb-1 flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> {venue.city}
-                        </div>
-                        <h3 className="text-base font-bold text-slate-900 group-hover:text-primary-600 transition-colors line-clamp-1">
-                          {venue.name}
-                        </h3>
-                        <p className="text-xs text-slate-500 mt-1.5 line-clamp-2">{venue.address}</p>
-                      </div>
+                      <span className="text-[11px] text-slate-400 block font-bold uppercase">Starts from</span>
+                      <span className="text-base font-black text-white">
+                        ₹400 <span className="text-xs text-slate-400 font-normal">/ hour</span>
+                      </span>
                     </div>
 
-                    <div className="px-5 pb-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-semibold">Courts Available</span>
-                        <span className="text-xs font-bold text-slate-700">{venue.totalCourts || 2} Courts</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${venue.latitude},${venue.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Get Directions in Google Maps"
+                        className="p-2.5 rounded-lg bg-[#1E293B] hover:bg-[#00E5FF] hover:text-black border-2 border-black shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none text-[#00E5FF] transition-all flex items-center justify-center shrink-0"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+
                       <Link
                         to={`/venues/${venue.id}`}
-                        className="px-4 py-2 text-xs font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-all shadow-sm"
+                        className="btn-primary py-2 px-4 text-xs font-black rounded-lg flex items-center gap-1.5"
                       >
-                        Book Now
+                        <span>Book Slot</span>
+                        <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                       </Link>
                     </div>
-                  </motion.div>
-                ))}
+                  </div>
+                </div>
               </div>
-            )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-10">
-                <button
-                  disabled={page === 0}
-                  onClick={() => setPage(page - 1)}
-                  className="p-2 bg-white rounded-xl border border-slate-200 text-slate-600 disabled:opacity-40"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="text-xs font-bold text-slate-700 px-4">
-                  Page {page + 1} of {totalPages}
-                </span>
-                <button
-                  disabled={page >= totalPages - 1}
-                  onClick={() => setPage(page + 1)}
-                  className="p-2 bg-white rounded-xl border border-slate-200 text-slate-600 disabled:opacity-40"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+            ))}
           </div>
+        )}
 
-        </div>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 pt-6">
+            <button
+              disabled={page === 0}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white disabled:opacity-40 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-medium text-slate-400 px-3">
+              Page {page + 1} of {totalPages}
+            </span>
+            <button
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white disabled:opacity-40 transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
       </div>
 
       <Footer />

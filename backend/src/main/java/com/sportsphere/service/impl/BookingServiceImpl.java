@@ -21,10 +21,11 @@ import com.sportsphere.repository.BookingRepository;
 import com.sportsphere.repository.SlotRepository;
 import com.sportsphere.repository.UserRepository;
 import com.sportsphere.service.BookingService;
+import com.sportsphere.service.PaymentService;
 import com.sportsphere.util.BookingNumberGenerator;
 import com.sportsphere.util.RefundCalculator;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -42,7 +43,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class BookingServiceImpl implements BookingService {
 
@@ -51,6 +51,36 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final BookingNumberGenerator bookingNumberGenerator;
     private final RefundCalculator refundCalculator;
+    private PaymentService paymentService;
+
+    // 5-arg constructor for unit tests
+    public BookingServiceImpl(BookingRepository bookingRepository,
+                              SlotRepository slotRepository,
+                              UserRepository userRepository,
+                              BookingNumberGenerator bookingNumberGenerator,
+                              RefundCalculator refundCalculator) {
+        this.bookingRepository = bookingRepository;
+        this.slotRepository = slotRepository;
+        this.userRepository = userRepository;
+        this.bookingNumberGenerator = bookingNumberGenerator;
+        this.refundCalculator = refundCalculator;
+    }
+
+    // 6-arg constructor for Spring injection
+    @Autowired
+    public BookingServiceImpl(BookingRepository bookingRepository,
+                              SlotRepository slotRepository,
+                              UserRepository userRepository,
+                              BookingNumberGenerator bookingNumberGenerator,
+                              RefundCalculator refundCalculator,
+                              @Autowired(required = false) PaymentService paymentService) {
+        this.bookingRepository = bookingRepository;
+        this.slotRepository = slotRepository;
+        this.userRepository = userRepository;
+        this.bookingNumberGenerator = bookingNumberGenerator;
+        this.refundCalculator = refundCalculator;
+        this.paymentService = paymentService;
+    }
 
     @Override
     @Transactional
@@ -78,15 +108,34 @@ public class BookingServiceImpl implements BookingService {
         }
 
         BigDecimal totalAmount = calculatePrice(court.getPricePerHour(), slot.getStartTime(), slot.getEndTime());
+        String bookingNumber = bookingNumberGenerator.generate();
+
+        String paymentIntentId = null;
+        String clientSecret = null;
+        BookingStatus initialBookingStatus = BookingStatus.PENDING;
+        PaymentStatus initialPaymentStatus = PaymentStatus.PENDING;
+
+        if (paymentService != null) {
+            var intentRes = paymentService.createPaymentIntent(bookingNumber, totalAmount, customer.getEmail());
+            if (intentRes != null) {
+                paymentIntentId = intentRes.getPaymentIntentId();
+                clientSecret = intentRes.getClientSecret();
+                if (intentRes.isMock()) {
+                    initialPaymentStatus = PaymentStatus.PAID;
+                }
+            }
+        }
 
         Booking booking = Booking.builder()
-                .bookingNumber(bookingNumberGenerator.generate())
+                .bookingNumber(bookingNumber)
                 .customer(customer)
                 .slot(slot)
-                .bookingStatus(BookingStatus.CONFIRMED)
-                .paymentStatus(PaymentStatus.PAID) // Simulated payment
+                .bookingStatus(initialBookingStatus)
+                .paymentStatus(initialPaymentStatus)
                 .totalAmount(totalAmount)
                 .refundAmount(BigDecimal.ZERO)
+                .stripePaymentIntentId(paymentIntentId)
+                .stripeClientSecret(clientSecret)
                 .build();
 
         slot.setSlotStatus(SlotStatus.BOOKED);
@@ -127,6 +176,13 @@ public class BookingServiceImpl implements BookingService {
         booking.setRefundAmount(refund);
         if (refund.compareTo(BigDecimal.ZERO) > 0) {
             booking.setPaymentStatus(refund.compareTo(booking.getTotalAmount()) == 0 ? PaymentStatus.REFUNDED : PaymentStatus.PARTIALLY_REFUNDED);
+            if (paymentService != null && booking.getStripePaymentIntentId() != null) {
+                try {
+                    paymentService.processRefund(booking.getStripePaymentIntentId(), refund);
+                } catch (Exception e) {
+                    log.error("Failed to process Stripe refund for booking {}: {}", booking.getBookingNumber(), e.getMessage());
+                }
+            }
         }
 
         // Reopen the slot only if it hasn't started; a started/past slot must not become bookable again
@@ -254,7 +310,48 @@ public class BookingServiceImpl implements BookingService {
         return toResponse(bookingRepository.save(booking));
     }
 
-    private BookingResponse toResponse(Booking booking) {
+    @Override
+    @Transactional
+    public BookingResponse rejectBooking(Long bookingId, String reason) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
+
+        if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
+            throw new BusinessException("Booking is already cancelled or rejected");
+        }
+        if (booking.getBookingStatus() != BookingStatus.PENDING) {
+            throw new BusinessException("Only pending bookings can be declined. Current status: " + booking.getBookingStatus());
+        }
+
+        Slot slot = booking.getSlot();
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+        booking.setCancelledAt(LocalDateTime.now());
+        booking.setCancellationReason(reason != null && !reason.isBlank() ? reason : "Declined by turf owner");
+
+        BigDecimal refund = booking.getTotalAmount();
+        booking.setRefundAmount(refund);
+        if (booking.getPaymentStatus() == PaymentStatus.PAID) {
+            booking.setPaymentStatus(PaymentStatus.REFUNDED);
+            if (paymentService != null && booking.getStripePaymentIntentId() != null) {
+                try {
+                    paymentService.processRefund(booking.getStripePaymentIntentId(), refund);
+                } catch (Exception e) {
+                    log.error("Failed to process refund for rejected booking {}: {}", booking.getBookingNumber(), e.getMessage());
+                }
+            }
+        }
+
+        LocalDateTime slotStartDateTime = slotStart(slot);
+        if (slotStartDateTime.isAfter(LocalDateTime.now())) {
+            slot.setSlotStatus(SlotStatus.AVAILABLE);
+            slotRepository.save(slot);
+        }
+
+        log.info("Booking #{} rejected by turf owner. Reason: {}", booking.getBookingNumber(), booking.getCancellationReason());
+        return toResponse(bookingRepository.save(booking));
+    }
+
+    public static BookingResponse toResponse(Booking booking, String publishableKey) {
         Slot slot = booking.getSlot();
         return BookingResponse.builder()
                 .id(booking.getId())
@@ -275,10 +372,17 @@ public class BookingServiceImpl implements BookingService {
                 .paymentStatus(booking.getPaymentStatus())
                 .totalAmount(booking.getTotalAmount())
                 .refundAmount(booking.getRefundAmount())
+                .stripePaymentIntentId(booking.getStripePaymentIntentId())
+                .stripeClientSecret(booking.getStripeClientSecret())
+                .stripePublishableKey(publishableKey)
                 .bookedAt(booking.getBookedAt())
                 .cancelledAt(booking.getCancelledAt())
                 .cancellationReason(booking.getCancellationReason())
                 .build();
+    }
+
+    public BookingResponse toResponse(Booking booking) {
+        return toResponse(booking, paymentService != null ? paymentService.getPublishableKey() : null);
     }
 
     private PagedResponse<BookingResponse> toPagedResponse(Page<Booking> page) {

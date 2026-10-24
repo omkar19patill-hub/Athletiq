@@ -1,5 +1,5 @@
 {
-  "name": "sportsphere-frontend",
+  "name": "athletiq-frontend",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -10,12 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^10.1.0",
     "@tanstack/react-query": "^5.28.9",
     "axios": "^1.6.8",
     "clsx": "^2.1.0",
     "framer-motion": "^11.0.25",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.359.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

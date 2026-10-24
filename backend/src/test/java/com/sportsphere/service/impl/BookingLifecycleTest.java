@@ -85,7 +85,7 @@ class BookingLifecycleTest {
 
         BookingResponse second = book("bob@x.com");
         assertNotEquals(first.getId(), second.getId());
-        assertEquals(BookingStatus.CONFIRMED, second.getBookingStatus());
+        assertEquals(BookingStatus.PENDING, second.getBookingStatus());
         assertEquals(SlotStatus.BOOKED, slot.getSlotStatus());
         // History is kept: the cancelled row still exists for the same slot
         assertEquals(2, table.size());

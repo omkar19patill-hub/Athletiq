@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { LandingPage } from '../pages/Landing/LandingPage';
 import { CustomerLogin } from '../features/auth/CustomerLogin';
 import { CustomerRegister } from '../features/auth/CustomerRegister';
@@ -16,8 +16,12 @@ import { ManageUsers } from '../features/dashboard/admin/ManageUsers';
 import { Profile } from '../pages/Profile/Profile';
 
 export const AppRoutes = () => {
+  const location = useLocation();
+  const isLandingPage = location.pathname === '/';
+
   return (
-    <Routes>
+    <div className={isLandingPage ? '' : 'universal-page-bg'}>
+      <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<CustomerLogin />} />
@@ -133,5 +137,6 @@ export const AppRoutes = () => {
       {/* Catch-all redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </div>
   );
 };

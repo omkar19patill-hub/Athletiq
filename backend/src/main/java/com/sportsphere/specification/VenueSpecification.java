@@ -17,6 +17,12 @@ public class VenueSpecification {
     public static Specification<Venue> buildSearchSpec(String city, String sport,
                                                         Double minPrice, Double maxPrice,
                                                         String keyword) {
+        return buildSearchSpec(city, null, sport, minPrice, maxPrice, keyword);
+    }
+
+    public static Specification<Venue> buildSearchSpec(String city, String pincode, String sport,
+                                                        Double minPrice, Double maxPrice,
+                                                        String keyword) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -26,20 +32,40 @@ public class VenueSpecification {
             if (StringUtils.hasText(city)) {
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("city")),
-                        "%" + city.toLowerCase() + "%"
+                        "%" + city.toLowerCase().trim() + "%"
+                ));
+            }
+
+            if (StringUtils.hasText(pincode)) {
+                predicates.add(criteriaBuilder.like(
+                        root.get("pincode"),
+                        "%" + pincode.trim() + "%"
                 ));
             }
 
             if (StringUtils.hasText(keyword)) {
+                String kw = keyword.toLowerCase().trim();
                 Predicate nameLike = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("name")),
-                        "%" + keyword.toLowerCase() + "%"
+                        "%" + kw + "%"
                 );
                 Predicate descLike = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("description")),
-                        "%" + keyword.toLowerCase() + "%"
+                        "%" + kw + "%"
                 );
-                predicates.add(criteriaBuilder.or(nameLike, descLike));
+                Predicate addrLike = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("address")),
+                        "%" + kw + "%"
+                );
+                Predicate cityLike = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("city")),
+                        "%" + kw + "%"
+                );
+                Predicate pinLike = criteriaBuilder.like(
+                        root.get("pincode"),
+                        "%" + kw + "%"
+                );
+                predicates.add(criteriaBuilder.or(nameLike, descLike, addrLike, cityLike, pinLike));
             }
 
             if (StringUtils.hasText(sport)) {

@@ -30,4 +30,6 @@ public class RegisterRequest {
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^[6-9]\\d{9}$", message = "Please provide a valid 10-digit Indian phone number")
     private String phone;
+
+    private com.sportsphere.entity.enums.Role role;
 }

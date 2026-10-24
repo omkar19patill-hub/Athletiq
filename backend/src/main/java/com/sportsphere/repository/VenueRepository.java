@@ -16,6 +16,8 @@ public interface VenueRepository extends JpaRepository<Venue, Long>, JpaSpecific
 
     Page<Venue> findByStatus(VenueStatus status, Pageable pageable);
 
+    List<Venue> findByStatus(VenueStatus status);
+
     Page<Venue> findByCityIgnoreCaseAndStatus(String city, VenueStatus status, Pageable pageable);
 
     List<Venue> findTop6ByStatusOrderByCreatedAtDesc(VenueStatus status);

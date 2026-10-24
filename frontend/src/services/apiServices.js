@@ -3,6 +3,8 @@ import api from '../api/axiosInstance';
 export const venueService = {
   getAll: (params) => api.get('/venues', { params }),
   search: (params) => api.get('/venues/search', { params }),
+  getNearby: (params) => api.get('/venues/nearby', { params }),
+  lookupPincode: (pincode) => api.get('/venues/pincode/lookup', { params: { pincode } }),
   getFeatured: () => api.get('/venues/featured'),
   getCities: () => api.get('/venues/cities'),
   getById: (id) => api.get(`/venues/${id}`),
@@ -37,6 +39,8 @@ export const bookingService = {
   getByNumber: (number) => api.get(`/bookings/number/${number}`),
   // Backend reads status from the query string (@RequestParam), not the body
   updateStatus: (id, status) => api.patch(`/bookings/${id}/status`, null, { params: { status } }),
+  accept: (id) => api.post(`/bookings/${id}/accept`),
+  reject: (id, reason) => api.post(`/bookings/${id}/reject`, null, { params: { reason } }),
   saveRequirement: (data) => api.post('/booking-requirements', data),
   getRequirement: (bookingId) => api.get(`/booking-requirements/booking/${bookingId}`),
 };
@@ -66,3 +70,9 @@ export const dashboardService = {
   getAdminStats: () => api.get('/dashboard/admin'),
   getCustomerStats: () => api.get('/dashboard/customer'),
 };
+
+export const paymentService = {
+  getConfig: () => api.get('/payments/config'),
+  confirm: (bookingNumber) => api.post(`/payments/confirm/${bookingNumber}`),
+};
+

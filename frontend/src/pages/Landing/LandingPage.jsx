@@ -1,414 +1,597 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Trophy, Shield, User, ArrowRight, Search, Calendar, CheckCircle2, 
-  Star, MapPin, Users, Activity, Sparkles, HelpCircle 
+  Trophy, Shield, ArrowRight, Search, Calendar, CheckCircle2, 
+  Star, MapPin, Users, Activity, Clock, 
+  ChevronRight, Compass, ShieldCheck 
 } from 'lucide-react';
 import { venueService } from '../../services/apiServices';
 import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
 
 export const LandingPage = () => {
+  const navigate = useNavigate();
   const [featuredVenues, setFeaturedVenues] = useState([]);
   const [loadingVenues, setLoadingVenues] = useState(true);
+  const [activeSportIndex, setActiveSportIndex] = useState(0);
 
+  // Quick Search state
+  const [hudCity, setHudCity] = useState('');
+  const [hudSport, setHudSport] = useState('ALL');
+  const [hudPincode, setHudPincode] = useState('');
+  const [hudPinInfo, setHudPinInfo] = useState(null);
+  const [resolvingHudPin, setResolvingHudPin] = useState(false);
+
+  // Real-time PIN code lookup
   useEffect(() => {
-    venueService.getFeatured()
-      .then((res) => {
-        if (res.success) setFeaturedVenues(res.data);
-      })
-      .catch(() => {})
-      .finally(() => setLoadingVenues(false));
-  }, []);
+    if (hudPincode && hudPincode.trim().length >= 3) {
+      setResolvingHudPin(true);
+      venueService.lookupPincode(hudPincode.trim())
+        .then((res) => {
+          if (res.success && res.data) {
+            setHudPinInfo(res.data);
+          } else {
+            setHudPinInfo(null);
+          }
+        })
+        .catch(() => setHudPinInfo(null))
+        .finally(() => setResolvingHudPin(false));
+    } else {
+      setHudPinInfo(null);
+    }
+  }, [hudPincode]);
 
-  const popularSports = [
-    { name: 'Football', icon: '⚽', desc: 'FIFA 5v5 & 7v7 turfs', color: 'from-emerald-500 to-teal-600', query: 'FOOTBALL' },
-    { name: 'Cricket', icon: '🏏', desc: 'Indoor box & outdoor grounds', color: 'from-amber-500 to-orange-600', query: 'CRICKET' },
-    { name: 'Badminton', icon: '🏸', desc: 'Synthetic & wooden courts', color: 'from-blue-500 to-indigo-600', query: 'BADMINTON' },
-    { name: 'Basketball', icon: '🏀', desc: 'Outdoor & FIBA courts', color: 'from-purple-500 to-pink-600', query: 'BASKETBALL' },
+  // Live dynamic update of displayed venues when PIN, City, or Sport changes
+  useEffect(() => {
+    if (hudPincode && hudPincode.trim().length >= 5) {
+      setLoadingVenues(true);
+      venueService.search({ pincode: hudPincode.trim(), sport: hudSport !== 'ALL' ? hudSport : undefined, size: 6 })
+        .then((res) => {
+          if (res.success && res.data.content.length > 0) {
+            setFeaturedVenues(res.data.content);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoadingVenues(false));
+    } else if (hudCity) {
+      setLoadingVenues(true);
+      venueService.search({ city: hudCity, sport: hudSport !== 'ALL' ? hudSport : undefined, size: 6 })
+        .then((res) => {
+          if (res.success) {
+            setFeaturedVenues(res.data.content);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoadingVenues(false));
+    } else {
+      venueService.getFeatured()
+        .then((res) => {
+          if (res.success) setFeaturedVenues(res.data);
+        })
+        .catch(() => {})
+        .finally(() => setLoadingVenues(false));
+    }
+  }, [hudPincode, hudCity, hudSport]);
+
+  const handleHudSearch = (e) => {
+    e.preventDefault();
+    const query = new URLSearchParams();
+    if (hudCity) query.set('city', hudCity);
+    if (hudSport && hudSport !== 'ALL') query.set('sport', hudSport);
+    if (hudPincode) query.set('pincode', hudPincode);
+    navigate(`/venues?${query.toString()}`);
+  };
+
+  const sportsArenaConfig = [
+    {
+      name: 'Football Turfs',
+      tagline: 'FIFA-grade 5v5 & 7v7 artificial turf pitches with professional floodlights',
+      icon: '⚽',
+      query: 'FOOTBALL',
+      accentColor: '#10B981',
+      surface: 'Monofilament 50mm Rubber Infill Turf',
+      lighting: '800 Lux LED Stadium Floodlights',
+      dimensions: '42m x 25m Enclosed Arena',
+      pitchGraphic: 'M10,20 L190,20 L190,120 L10,120 Z M100,20 L100,120 M100,70 A20,20 0 1,0 100,69.9 M10,45 L35,45 L35,95 L10,95 M190,45 L165,45 L165,95 L190,95',
+      bgImg: 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=1600&auto=format&fit=crop&q=80',
+    },
+    {
+      name: 'Box Cricket Nets',
+      tagline: 'High-tension enclosed turf nets with pace tracking and bowling machines',
+      icon: '🏏',
+      query: 'CRICKET',
+      accentColor: '#F59E0B',
+      surface: 'High-Density 15mm Curled Turf Pitch',
+      lighting: 'Shadow-Free Omni Floodlight Grid',
+      dimensions: '110ft x 55ft Enclosed Box',
+      pitchGraphic: 'M20,20 L180,20 L180,120 L20,120 Z M70,40 L130,40 L130,100 L70,100 Z M100,20 L100,120',
+      bgImg: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=1600&auto=format&fit=crop&q=80',
+    },
+    {
+      name: 'Badminton Courts',
+      tagline: 'BWF-approved synthetic mats & teak wooden courts with anti-glare overheads',
+      icon: '🏸',
+      query: 'BADMINTON',
+      accentColor: '#38BDF8',
+      surface: 'BWF Approved 4.5mm PVC Cushion Mat',
+      lighting: 'Anti-Glare Non-Flicker Overhead Panels',
+      dimensions: '13.4m x 6.1m Regulation Court',
+      pitchGraphic: 'M30,20 L170,20 L170,120 L30,120 Z M100,20 L100,120 M50,20 L50,120 M150,20 L150,120 M30,70 L170,70',
+      bgImg: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=1600&auto=format&fit=crop&q=80',
+    },
+    {
+      name: 'Basketball Courts',
+      tagline: 'FIBA standard shock-absorbent acrylic & polyurethane cushion courts',
+      icon: '🏀',
+      query: 'BASKETBALL',
+      accentColor: '#F43F5E',
+      surface: 'Interlocking Shock-Absorbent Tiles',
+      lighting: 'Night Match Floodlight Towers',
+      dimensions: '28m x 15m Regulation Half/Full',
+      pitchGraphic: 'M20,20 L180,20 L180,120 L20,120 Z M100,20 L100,120 M100,70 A25,25 0 1,0 100,69.9 M20,40 L50,40 L50,100 L20,100 M180,40 L150,40 L150,100 L180,100',
+      bgImg: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1600&auto=format&fit=crop&q=80',
+    },
   ];
 
+  const activeSport = sportsArenaConfig[activeSportIndex];
+
   return (
-    <div className="min-h-screen bg-surface-background flex flex-col font-sans">
+    <div className="min-h-screen bg-[#0B0F17] text-slate-200 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-white via-primary-50/30 to-surface-background pt-12 pb-24 lg:pt-20 lg:pb-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+      {/* 1. HERO SECTION with Photorealistic Stadium Background */}
+      <section className="relative overflow-hidden pt-16 pb-28 lg:pt-24 lg:pb-36 stadium-hero-bg border-b border-white/[0.08]">
+        
+        {/* Subtle radial lighting accent */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-3xl mx-auto space-y-5">
             
-            {/* LEFT SIDE */}
+            {/* Neo-Brutalist Sticker Badge */}
             <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="lg:col-span-7 space-y-6 text-left"
+              initial={{ opacity: 0, y: -15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="inline-flex items-center gap-2 sticker-badge sticker-volt"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-100/80 text-primary-700 text-xs font-bold uppercase tracking-wider">
-                <Sparkles className="w-4 h-4 text-primary-600" />
-                #1 Sports Venue Booking Network
-              </div>
-
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-                Book Your Favorite <span className="text-primary-600 underline decoration-primary-300 decoration-wavy decoration-2">Sports Turf</span> in Minutes
-              </h1>
-
-              <p className="text-lg sm:text-xl text-slate-600 max-w-2xl leading-relaxed">
-                Search, compare and book badminton courts, football turfs, cricket grounds and more with real-time availability.
-              </p>
-
-              <div className="flex flex-wrap gap-4 pt-4">
-                <Link
-                  to="/venues"
-                  className="px-8 py-4 text-base font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-2xl shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 hover:-translate-y-0.5 transition-all flex items-center gap-3"
-                >
-                  Explore Venues <ArrowRight className="w-5 h-5" />
-                </Link>
-                <a
-                  href="#how-it-works"
-                  className="px-8 py-4 text-base font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl shadow-sm hover:shadow transition-all flex items-center gap-2"
-                >
-                  How It Works
-                </a>
-              </div>
-
-              {/* Badges */}
-              <div className="pt-8 border-t border-slate-200/60 flex items-center gap-8 text-xs font-semibold text-slate-500">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-primary-600" /> Instant Booking
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-primary-600" /> Zero Convenience Fee
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-primary-600" /> 100% Refund Policy
-                </div>
-              </div>
+              <span className="w-2 h-2 rounded-full bg-black"></span>
+              Verified Sports Venues & Real-time Booking
             </motion.div>
 
-            {/* RIGHT SIDE — Modern Animated Cards */}
-            <motion.div 
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6"
+            {/* Headline */}
+            <motion.h1 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-4xl sm:text-6xl font-black font-display tracking-tight text-white uppercase leading-tight"
             >
-              {/* Card 1: ADMIN */}
-              <motion.div 
-                whileHover={{ y: -6, scale: 1.02 }}
-                className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-card p-6 shadow-xl border border-slate-700/50 relative overflow-hidden group"
-              >
-                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-primary-500/10 rounded-full blur-2xl group-hover:bg-primary-500/20 transition-all"></div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-primary-400">
-                    <Shield className="w-6 h-6" />
-                  </div>
-                  <span className="px-3 py-1 bg-slate-800 text-slate-300 text-xs font-bold rounded-full uppercase tracking-wider">
-                    Venue Owner
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-1">ADMIN PORTAL</h3>
-                <p className="text-slate-400 text-xs mb-6">Manage courts, dynamic slot pricing, customer bookings and revenue analytics.</p>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <Link
-                    to="/admin/login"
-                    className="py-2.5 px-4 text-center text-xs font-bold text-slate-900 bg-white hover:bg-slate-100 rounded-xl transition-colors"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/register?role=ADMIN"
-                    className="py-2.5 px-4 text-center text-xs font-bold text-white bg-primary-600 hover:bg-primary-500 rounded-xl transition-colors"
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              </motion.div>
+              Book Premier Sports Turfs <br className="hidden sm:inline" />
+              <span className="text-[#00FF87] underline decoration-4 decoration-black">
+                Under the Floodlights
+              </span>
+            </motion.h1>
 
-              {/* Card 2: CUSTOMER */}
-              <motion.div 
-                whileHover={{ y: -6, scale: 1.02 }}
-                className="bg-white rounded-card p-6 shadow-soft border border-slate-100 relative overflow-hidden group hover:border-primary-200 transition-all"
+            <motion.p 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed font-medium"
+            >
+              Reserve football turfs, cricket nets, and indoor courts in seconds. Search by location PIN code or city with guaranteed instant slot lock and secure Stripe checkout.
+            </motion.p>
+
+            {/* CTAs */}
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex flex-wrap items-center justify-center gap-3 pt-2"
+            >
+              <Link
+                to="/venues"
+                className="btn-primary py-3.5 px-6 text-sm rounded-lg"
               >
-                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-primary-100/50 rounded-full blur-2xl group-hover:bg-primary-200/50 transition-all"></div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center">
-                    <User className="w-6 h-6" />
-                  </div>
-                  <span className="px-3 py-1 bg-primary-50 text-primary-700 text-xs font-bold rounded-full uppercase tracking-wider">
-                    Sports Player
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-1">CUSTOMER PORTAL</h3>
-                <p className="text-slate-500 text-xs mb-6">Find nearby sports turfs, pick preferred slots, and confirm instant bookings.</p>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <Link
-                    to="/login"
-                    className="py-2.5 px-4 text-center text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="py-2.5 px-4 text-center text-xs font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-xl shadow-md shadow-primary-500/20 transition-all"
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              </motion.div>
+                <span>Find Venues Near You</span>
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              </Link>
+
+              <Link
+                to="/admin/login"
+                className="btn-secondary py-3.5 px-6 text-sm rounded-lg"
+              >
+                <Shield className="w-4 h-4 text-[#00FF87]" />
+                <span>Venue Partner Login</span>
+              </Link>
             </motion.div>
 
           </div>
+
+          {/* Clean Modern Search Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-12 max-w-4xl mx-auto"
+          >
+            <form onSubmit={handleHudSearch} className="p-4 sm:p-5 rounded-xl bg-[#0F172A] border-2 border-black shadow-[6px_6px_0px_#000000] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+              
+              {/* City Selector */}
+              <div className="lg:col-span-3 bg-[#0B0F17] border-2 border-black shadow-[2px_2px_0px_#000] rounded-lg px-3.5 py-2.5 transition-colors">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#00FF87]" /> City
+                </label>
+                <select
+                  value={hudCity}
+                  onChange={(e) => setHudCity(e.target.value)}
+                  className="w-full bg-transparent text-white font-bold text-sm focus:outline-none cursor-pointer"
+                >
+                  <option value="" className="bg-[#0F172A] text-white">All Metro Cities</option>
+                  <option value="Bangalore" className="bg-[#0F172A] text-white">Bangalore</option>
+                  <option value="Mumbai" className="bg-[#0F172A] text-white">Mumbai</option>
+                  <option value="Gurugram" className="bg-[#0F172A] text-white">Gurugram</option>
+                  <option value="Pune" className="bg-[#0F172A] text-white">Pune</option>
+                  <option value="Hyderabad" className="bg-[#0F172A] text-white">Hyderabad</option>
+                </select>
+              </div>
+
+              {/* Area PIN Code */}
+              <div className="lg:col-span-3 bg-[#0B0F17] border-2 border-black shadow-[2px_2px_0px_#000] rounded-lg px-3.5 py-2.5 transition-colors">
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <Compass className="w-3.5 h-3.5 text-[#00E5FF]" /> Area PIN Code
+                  </label>
+                  {resolvingHudPin && <span className="w-2 h-2 rounded-full bg-[#00FF87] animate-ping" />}
+                </div>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={hudPincode}
+                  onChange={(e) => setHudPincode(e.target.value)}
+                  placeholder="e.g. 560034"
+                  className="w-full bg-transparent text-white font-bold text-sm placeholder:text-slate-500 focus:outline-none"
+                />
+                {hudPinInfo && (
+                  <div className="text-[11px] text-[#00FF87] mt-1 flex items-center gap-1 truncate font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#00FF87] shrink-0" />
+                    <span>{hudPinInfo.area}, {hudPinInfo.city}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Sport Type */}
+              <div className="lg:col-span-3 bg-[#0B0F17] border-2 border-black shadow-[2px_2px_0px_#000] rounded-lg px-3.5 py-2.5 transition-colors">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-[#FACC15]" /> Sport
+                </label>
+                <select
+                  value={hudSport}
+                  onChange={(e) => setHudSport(e.target.value)}
+                  className="w-full bg-transparent text-white font-bold text-sm focus:outline-none cursor-pointer"
+                >
+                  <option value="ALL" className="bg-[#0F172A] text-white">All Sports</option>
+                  <option value="FOOTBALL" className="bg-[#0F172A] text-white">⚽ Football</option>
+                  <option value="CRICKET" className="bg-[#0F172A] text-white">🏏 Cricket</option>
+                  <option value="BADMINTON" className="bg-[#0F172A] text-white">🏸 Badminton</option>
+                  <option value="BASKETBALL" className="bg-[#0F172A] text-white">🏀 Basketball</option>
+                </select>
+              </div>
+
+              {/* Search Button */}
+              <div className="lg:col-span-3">
+                <button
+                  type="submit"
+                  className="w-full h-full py-3.5 px-5 btn-primary text-sm font-black rounded-lg"
+                >
+                  <Search className="w-4 h-4 stroke-[2.5]" />
+                  <span>Search Arenas</span>
+                </button>
+              </div>
+
+            </form>
+
+            {/* Trust Badges */}
+            <div className="flex flex-wrap items-center justify-center gap-6 mt-4 text-xs text-slate-400 font-medium">
+              <span className="flex items-center gap-1.5 text-slate-300">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Verified Courts
+              </span>
+              <span className="flex items-center gap-1.5 text-slate-300">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> High-Lux Floodlights
+              </span>
+              <span className="flex items-center gap-1.5 text-slate-300">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Instant Stripe Refund Policy
+              </span>
+            </div>
+          </motion.div>
+
         </div>
       </section>
 
-      {/* Popular Sports Section */}
-      <section className="py-20 bg-white">
+      {/* 2. SPORT CATEGORY PREVIEWS */}
+      <section className="py-20 bg-[#0B0F17] border-b border-slate-800/80 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">
-              Explore Popular Sports
-            </h2>
-            <p className="mt-3 text-slate-500 text-base">
-              Choose your sport and view top rated venues near you with available time slots.
+          
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10">
+            <div>
+              <span className="text-emerald-400 text-xs font-semibold uppercase tracking-wider block mb-1">
+                Turfs & Courts
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-bold font-display text-white">
+                Choose Your Sport
+              </h2>
+            </div>
+            <p className="text-slate-400 text-sm max-w-md">
+              Select a discipline to view standard court dimensions, turf specifications, and available floodlight arenas.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {popularSports.map((sport, index) => (
-              <Link key={index} to={`/venues?sport=${sport.query}`}>
-                <motion.div
-                  whileHover={{ y: -6 }}
-                  className="p-6 rounded-card bg-surface-background border border-slate-100 shadow-sm hover:shadow-hover transition-all text-left relative overflow-hidden group"
-                >
-                  <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform">{sport.icon}</div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-1">{sport.name}</h3>
-                  <p className="text-xs text-slate-500 mb-4">{sport.desc}</p>
-                  <span className="text-xs font-bold text-primary-600 flex items-center gap-1 group-hover:gap-2 transition-all">
-                    View Turfs <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
-                </motion.div>
-              </Link>
+          {/* Sport Selector Tabs */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            {sportsArenaConfig.map((sport, idx) => (
+              <button
+                key={sport.name}
+                onClick={() => setActiveSportIndex(idx)}
+                className={`p-4 rounded-xl border text-left transition-all duration-200 relative ${
+                  activeSportIndex === idx
+                    ? 'bg-slate-800/90 border-emerald-500/60 shadow-lg'
+                    : 'bg-slate-900/40 border-slate-800 hover:bg-slate-800/50 hover:border-slate-700'
+                }`}
+              >
+                <div className="text-2xl mb-2">{sport.icon}</div>
+                <div className="text-base font-semibold text-white">{sport.name}</div>
+                <div className="text-xs text-slate-400 mt-1 line-clamp-1">{sport.surface.split(' ')[0]} surface</div>
+                {activeSportIndex === idx && (
+                  <motion.div 
+                    layoutId="activeSportIndicator" 
+                    className="absolute bottom-0 left-3 right-3 h-0.5 bg-emerald-400 rounded-full"
+                  />
+                )}
+              </button>
             ))}
+          </div>
+
+          {/* Active Sport Showcase Card */}
+          <div className="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl min-h-[380px] flex flex-col lg:flex-row items-center">
+            
+            {/* Background Image Preview */}
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={activeSport.name}
+                src={activeSport.bgImg}
+                alt={activeSport.name}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.3 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4 }}
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+              />
+            </AnimatePresence>
+
+            {/* Dark gradient scrim */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-transparent"></div>
+
+            {/* Details */}
+            <div className="relative z-10 p-8 lg:p-12 max-w-xl space-y-5">
+              <div className="inline-block px-3 py-1 rounded-md text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                Official Tournament Standards
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-bold font-display text-white">
+                {activeSport.name}
+              </h3>
+              <p className="text-slate-300 text-sm leading-relaxed">
+                {activeSport.tagline}
+              </p>
+
+              <div className="space-y-2.5 text-xs text-slate-300">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span className="text-slate-400">Surface Type:</span>
+                  <span className="text-white font-medium">{activeSport.surface}</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+                  <span className="text-slate-400">Lighting Quality:</span>
+                  <span className="text-white font-medium">{activeSport.lighting}</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  <span className="text-slate-400">Dimensions:</span>
+                  <span className="text-white font-medium">{activeSport.dimensions}</span>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Link
+                  to={`/venues?sport=${activeSport.query}`}
+                  className="btn-primary py-2.5 px-5 text-xs font-semibold rounded-lg"
+                >
+                  <span>Explore {activeSport.name}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Court Blueprint Graphic */}
+            <div className="relative z-10 flex-1 w-full p-8 flex items-center justify-center">
+              <div className="w-full max-w-md aspect-[16/10] border border-slate-700/80 rounded-xl p-4 bg-slate-950/70 backdrop-blur-md relative flex items-center justify-center">
+                <svg viewBox="0 0 200 140" className="w-full h-full stroke-emerald-400/90 fill-none stroke-[1.8]">
+                  <path d={activeSport.pitchGraphic} />
+                </svg>
+                <div className="absolute bottom-2.5 right-3 text-[10px] text-slate-400 font-medium flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Certified Court Dimensions
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* Featured Venues */}
-      <section className="py-20 bg-surface-background">
+      {/* 3. FEATURED VENUES */}
+      <section className="py-20 bg-[#0B0F17] border-b border-slate-800/80 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12">
+          
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10">
             <div>
-              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">
-                Featured Venues
+              <span className="text-emerald-400 text-xs font-semibold uppercase tracking-wider block mb-1">
+                Handpicked Locations
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-bold font-display text-white">
+                {hudPincode && hudPinInfo ? (
+                  <span>Venues Near {hudPinInfo.area}</span>
+                ) : (
+                  <span>Popular Sports Venues</span>
+                )}
               </h2>
-              <p className="mt-2 text-slate-500 text-base">
-                Handpicked sports complexes with state-of-the-art facilities and amenities.
-              </p>
             </div>
-            <Link to="/venues" className="mt-4 sm:mt-0 text-sm font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1">
-              View All Venues ({featuredVenues.length}) <ArrowRight className="w-4 h-4" />
+            <Link 
+              to="/venues" 
+              className="btn-secondary py-2 px-4 text-xs font-medium rounded-lg"
+            >
+              <span>View All Venues ({featuredVenues.length})</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
           {loadingVenues ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-80 bg-white rounded-card animate-pulse"></div>
+                <div key={i} className="h-80 rounded-2xl bg-slate-900 border border-slate-800 animate-pulse"></div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {featuredVenues.map((venue) => (
-                <motion.div
+                <div
                   key={venue.id}
-                  whileHover={{ y: -6 }}
-                  className="bg-white rounded-card overflow-hidden shadow-soft border border-slate-100 flex flex-col group"
+                  className="rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 hover:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-200 flex flex-col group"
                 >
-                  <div className="relative h-48 overflow-hidden bg-slate-100">
+                  {/* Photo Container */}
+                  <div className="relative h-52 overflow-hidden bg-slate-950">
                     <img
-                      src={venue.imageUrls?.[0] || 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800'}
+                      src={venue.imageUrls?.[0] || 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=1000'}
                       alt={venue.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-slate-800 flex items-center gap-1 shadow-sm">
-                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                      {venue.averageRating || '4.5'}
-                    </div>
-                  </div>
-                  <div className="p-6 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-primary-600 uppercase tracking-wider mb-1 flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5" /> {venue.city}
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900 group-hover:text-primary-600 transition-colors line-clamp-1">
-                        {venue.name}
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-2 line-clamp-2">{venue.description}</p>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-black/30"></div>
+
+                    {/* Top Badges */}
+                    <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                      <span className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-900/80 backdrop-blur-md text-emerald-400 border border-slate-700/60 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        Available Today
+                      </span>
+                      {venue.distanceKm !== undefined && venue.distanceKm !== null && (
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-900/80 backdrop-blur-md text-sky-400 border border-slate-700/60">
+                          {venue.distanceKm === 0 ? 'Exact Match' : `${venue.distanceKm.toFixed(1)} km`}
+                        </span>
+                      )}
                     </div>
 
-                    <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md px-2 py-1 rounded-md text-xs font-semibold text-amber-400 flex items-center gap-1 border border-slate-700/60">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      {venue.averageRating || '4.8'}
+                    </div>
+
+                    {/* City Tag on Bottom of Image */}
+                    <div className="absolute bottom-3 left-3 text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-400" /> {venue.city} • PIN {venue.pincode}
+                    </div>
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors line-clamp-1">
+                        {venue.name}
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">
+                        {venue.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-3.5 border-t border-slate-800 flex items-center justify-between">
                       <div>
-                        <span className="text-xs text-slate-400 block">Starting from</span>
-                        <span className="text-base font-extrabold text-slate-900">₹400 <span className="text-xs font-normal text-slate-500">/ hr</span></span>
+                        <span className="text-[11px] text-slate-400 block font-medium">Starting from</span>
+                        <span className="text-base font-bold text-white">
+                          ₹400 <span className="text-xs text-slate-400 font-normal">/ hour</span>
+                        </span>
                       </div>
+
                       <Link
                         to={`/venues/${venue.id}`}
-                        className="px-4 py-2 text-xs font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors"
+                        className="btn-primary py-2 px-4 text-xs font-semibold rounded-lg"
                       >
-                        Book Slot
+                        <span>Book Slot</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           )}
+
         </div>
       </section>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="py-20 bg-white border-y border-slate-100">
+      {/* 4. HOW IT WORKS */}
+      <section className="py-20 bg-[#080C14] border-b border-slate-800/80 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">
-              How SportSphere Works
+          
+          <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
+            <span className="text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+              Simple 3-Step Process
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-bold font-display text-white">
+              How Athletiq Works
             </h2>
-            <p className="mt-3 text-slate-500 text-base">
-              3 simple steps to reserve your sports court and play with your squad.
+            <p className="text-slate-400 text-sm">
+              Discover, reserve, and play on verified turf courts in your neighborhood.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            <div className="bg-surface-background p-8 rounded-card border border-slate-100 relative text-center">
-              <div className="w-14 h-14 bg-primary-100 text-primary-700 text-xl font-extrabold rounded-2xl flex items-center justify-center mx-auto mb-6">
-                1
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Step 1 */}
+            <div className="bg-slate-900/70 p-6 rounded-2xl border border-slate-800 text-left space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 font-bold text-base flex items-center justify-center">
+                01
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Search & Compare</h3>
-              <p className="text-slate-500 text-sm">
-                Filter courts by city, sport, pricing, user reviews, and preferred date.
+              <h3 className="text-lg font-bold text-white">Search by PIN Code or City</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Enter your area PIN code or choose a city to instantly browse floodlit turfs, badminton courts, and cricket nets nearest to you.
               </p>
             </div>
 
-            <div className="bg-surface-background p-8 rounded-card border border-slate-100 relative text-center">
-              <div className="w-14 h-14 bg-primary-100 text-primary-700 text-xl font-extrabold rounded-2xl flex items-center justify-center mx-auto mb-6">
-                2
+            {/* Step 2 */}
+            <div className="bg-slate-900/70 p-6 rounded-2xl border border-slate-800 text-left space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 font-bold text-base flex items-center justify-center">
+                02
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Pick Slot & Requirements</h3>
-              <p className="text-slate-500 text-sm">
-                Select hourly time slot and fill custom court preparations & equipment needs.
+              <h3 className="text-lg font-bold text-white">Pick Your Court & Slot</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Check real-time court availability, filter by morning or evening hours, and customize equipment needs like balls and bibs.
               </p>
             </div>
 
-            <div className="bg-surface-background p-8 rounded-card border border-slate-100 relative text-center">
-              <div className="w-14 h-14 bg-primary-100 text-primary-700 text-xl font-extrabold rounded-2xl flex items-center justify-center mx-auto mb-6">
-                3
+            {/* Step 3 */}
+            <div className="bg-slate-900/70 p-6 rounded-2xl border border-slate-800 text-left space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 font-bold text-base flex items-center justify-center">
+                03
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Instant Confirmation</h3>
-              <p className="text-slate-500 text-sm">
-                Receive instant booking pass, automated receipt PDF, and guaranteed turf access.
+              <h3 className="text-lg font-bold text-white">Instant Confirmation & Receipt</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Pay securely via Stripe with automated digital passes, matchday receipts, and a guaranteed hassle-free cancellation policy.
               </p>
             </div>
+
           </div>
+
         </div>
       </section>
 
-      {/* Customer Reviews */}
-      <section className="py-20 bg-surface-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">
-              Loved by 50,000+ Players
-            </h2>
-            <p className="mt-3 text-slate-500 text-base">
-              See what sports enthusiasts and team captains have to say about SportSphere.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-card shadow-soft border border-slate-100">
-              <div className="flex text-amber-400 gap-1 mb-4">
-                {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-amber-400" />)}
-              </div>
-              <p className="text-slate-600 text-sm leading-relaxed mb-6">
-                "Finding box cricket grounds in Mumbai during weekends was a headache until SportSphere. Instant slot confirmation and transparent refund policy!"
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center text-sm">
-                  AP
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">Aditya Patel</h4>
-                  <span className="text-xs text-slate-400">Cricket Captain, Mumbai</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-8 rounded-card shadow-soft border border-slate-100">
-              <div className="flex text-amber-400 gap-1 mb-4">
-                {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-amber-400" />)}
-              </div>
-              <p className="text-slate-600 text-sm leading-relaxed mb-6">
-                "The requirement form before booking allowed us to request floodlights and bibs for our weekend corporate football league. Super smooth!"
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary-600 text-white font-bold flex items-center justify-center text-sm">
-                  NK
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">Neha Kulkarni</h4>
-                  <span className="text-xs text-slate-400">Corporate Manager, Bangalore</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-8 rounded-card shadow-soft border border-slate-100">
-              <div className="flex text-amber-400 gap-1 mb-4">
-                {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-amber-400" />)}
-              </div>
-              <p className="text-slate-600 text-sm leading-relaxed mb-6">
-                "As a venue manager, the Admin dashboard gave us full control over court slots, live revenue analytics, and zero double bookings!"
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-700 text-white font-bold flex items-center justify-center text-sm">
-                  VR
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">Vikram Rao</h4>
-                  <span className="text-xs text-slate-400">Venue Owner, Apex Arena</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Statistics Banner */}
-      <section className="py-16 bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <span className="text-4xl font-extrabold text-primary-400 block mb-1">500+</span>
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Verified Venues</span>
-            </div>
-            <div>
-              <span className="text-4xl font-extrabold text-primary-400 block mb-1">50,000+</span>
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Bookings Completed</span>
-            </div>
-            <div>
-              <span className="text-4xl font-extrabold text-primary-400 block mb-1">20+</span>
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Cities Active</span>
-            </div>
-            <div>
-              <span className="text-4xl font-extrabold text-primary-400 block mb-1">4.9 ★</span>
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Average Rating</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <Footer />
     </div>

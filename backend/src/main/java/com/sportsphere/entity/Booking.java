@@ -59,6 +59,12 @@ public class Booking {
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
+    @Column(name = "stripe_payment_intent_id", length = 120)
+    private String stripePaymentIntentId;
+
+    @Column(name = "stripe_client_secret", length = 255)
+    private String stripeClientSecret;
+
     @CreationTimestamp
     @Column(name = "booked_at", updatable = false)
     private LocalDateTime bookedAt;

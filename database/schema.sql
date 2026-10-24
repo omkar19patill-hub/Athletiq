@@ -1,5 +1,5 @@
 -- ============================================================================
--- SportSphere Multi-Venue Sports Turf Booking Platform
+-- Athletiq Multi-Venue Sports Turf Booking Platform
 -- Complete Database Schema DDL Script (MySQL 8.0+)
 -- Safe to re-run: creates only missing tables and never drops or alters existing ones.
 -- To wipe a LOCAL development database, use reset_dev.sql (destructive).

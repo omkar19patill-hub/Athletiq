@@ -1,0 +1,19 @@
+{
+  "name": "athletiq",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Athletiq - Sports Venue & Turf Booking Platform",
+  "scripts": {
+    "start": "npm run dev",
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan.bold,green.bold\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "dotenv -e .env -- mvn -f backend/pom.xml org.springframework.boot:spring-boot-maven-plugin:run",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build:backend": "mvn -f backend/pom.xml clean package -DskipTests",
+    "build:frontend": "npm run build --prefix frontend",
+    "install:all": "npm install && npm install --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "dotenv-cli": "^7.4.2"
+  }
+}

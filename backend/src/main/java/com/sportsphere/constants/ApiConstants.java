@@ -16,4 +16,5 @@ public final class ApiConstants {
     public static final String REVIEWS = API_V1 + "/reviews";
     public static final String FAVOURITES = API_V1 + "/favourites";
     public static final String DASHBOARD = API_V1 + "/dashboard";
+    public static final String PAYMENTS = API_V1 + "/payments";
 }

@@ -4,33 +4,241 @@
 
 @layer base {
   body {
-    background-color: #F8FAFC;
-    color: #1E293B;
+    background-color: #0B0F17;
+    color: #E2E8F0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+/* Photorealistic Stadium Hero Background with Dark Luxury Overlay */
+.stadium-hero-bg {
+  position: relative;
+  background-image: 
+    linear-gradient(180deg, rgba(11, 15, 23, 0.72) 0%, rgba(11, 15, 23, 0.88) 55%, #0B0F17 100%),
+    url('/images/stadium_hero_bg.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
+/* Universal Inner Page Background (applied everywhere except landing page) */
+.universal-page-bg {
+  min-height: 100vh;
+  background-color: #0B0F17;
+  background-image: 
+    linear-gradient(180deg, rgba(11, 15, 23, 0.84) 0%, rgba(11, 15, 23, 0.92) 50%, rgba(11, 15, 23, 0.98) 100%),
+    url('/images/universal_app_bg.jpg');
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* Subtle Global Page Background */
+.page-ambient-bg {
+  background-color: #0B0F17;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.07) 0%, transparent 60%),
+    radial-gradient(circle at 90% 40%, rgba(59, 130, 246, 0.04) 0%, transparent 50%),
+    linear-gradient(to bottom, transparent, #0B0F17);
+}
+
+/* ========================================================
+   NEO-BRUTALIST DESIGN SYSTEM (ATHLETIQ)
+   - Solid 2px-3px Black Borders
+   - Zero-Blur Hard Offset Block Shadows (4px 4px 0px #000)
+   - Physical Mechanical Tactile Buttons (Elevates on hover, Snaps down on active)
+   - Bold Physical Sticker Badges
+   ======================================================== */
+
+.glass-panel, .neo-panel {
+  background: #0D131F;
+  border: 2px solid #000000;
+  box-shadow: 4px 4px 0px #000000;
+  border-radius: 16px;
+}
+
+.glass-card, .neo-card {
+  background: #111827;
+  border: 2px solid #000000;
+  box-shadow: 4px 4px 0px #000000;
+  border-radius: 14px;
+  transition: all 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover, .neo-card:hover {
+  transform: translate(-2px, -2px);
+  border-color: #000000;
+  box-shadow: 6px 6px 0px #00FF87;
+}
+
+/* Neo-Brutalist Tactile Push Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.35rem;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #000000;
+  background-color: #00FF87;
+  border: 2px solid #000000;
+  border-radius: 10px;
+  box-shadow: 3px 3px 0px #000000;
+  transition: all 0.1s ease;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: #00FF87;
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 5px 5px 0px #000000;
+}
+
+.btn-primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px #000000;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.35rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #F8FAFC;
+  background-color: #1E293B;
+  border: 2px solid #000000;
+  border-radius: 10px;
+  box-shadow: 3px 3px 0px #000000;
+  transition: all 0.1s ease;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: #334155;
+  color: #FFFFFF;
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 5px 5px 0px #000000;
+}
+
+.btn-secondary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px #000000;
+}
+
+/* Neo-Brutalist Sticker Badges */
+.sticker-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.6875rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1.5px solid #000000;
+  border-radius: 6px;
+  box-shadow: 2px 2px 0px #000000;
+}
+
+.sticker-volt {
+  background-color: #00FF87;
+  color: #000000;
+}
+
+.sticker-yellow {
+  background-color: #FACC15;
+  color: #000000;
+}
+
+.sticker-cyan {
+  background-color: #00E5FF;
+  color: #000000;
+}
+
+.sticker-dark {
+  background-color: #0F172A;
+  color: #F8FAFC;
+}
+
+/* Neo-Brutal Form Controls */
+.neo-input {
+  background-color: #0B0F17;
+  border: 2px solid #000000;
+  box-shadow: 3px 3px 0px #000000;
+  border-radius: 10px;
+  color: #FFFFFF;
+  transition: all 0.1s ease;
+}
+
+.neo-input:focus {
+  border-color: #00FF87;
+  box-shadow: 3px 3px 0px #00FF87;
+  outline: none;
+}
+
+/* Custom Sleek Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #F1F5F9;
-  border-radius: 4px;
+  background: #0B0F17;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #1E293B;
   border-radius: 4px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #334155;
+}
+
+/* Dark Mode Leaflet Popups & Controls */
+.dark-leaflet-popup .leaflet-popup-content-wrapper {
+  background: #0B0F17 !important;
+  color: #E2E8F0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 14px !important;
+  padding: 0 !important;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 255, 135, 0.2) !important;
+  overflow: hidden;
+}
+
+.dark-leaflet-popup .leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.dark-leaflet-popup .leaflet-popup-tip {
+  background: #0B0F17 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark-leaflet-popup .leaflet-popup-close-button {
+  color: #94A3B8 !important;
+  top: 8px !important;
+  right: 8px !important;
+  z-index: 10;
+}
+
+.leaflet-container {
+  font-family: inherit !important;
+  background-color: #0B0F17 !important;
+}
+
+/* Dark Stadium Map Tile Theme (Invert + Hue Rotate for Crisp Midnight Street Network) */
+.dark-stadium-tiles {
+  filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(95%) saturate(30%) !important;
 }

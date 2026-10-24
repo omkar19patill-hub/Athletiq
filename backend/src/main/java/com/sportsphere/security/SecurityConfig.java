@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/courts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/slots/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
+                        .requestMatchers("/api/v1/payments/webhook").permitAll()
                         .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html").permitAll()
                         // Admin only
                         .requestMatchers("/api/v1/dashboard/admin/**").hasRole("ADMIN")

@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: sportsphere-backend
+    name: athletiq-backend
 
   datasource:
     url: jdbc:mysql://localhost:3306/sportsphere_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
@@ -33,6 +33,12 @@ application:
 
   cors:
     allowed-origins: http://localhost:5173
+
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY:sk_test_mock_secret_key_athletiq}
+    publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_mock_publishable_key_athletiq}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_mock_webhook_secret}
+    currency: ${STRIPE_CURRENCY:inr}
 
 springdoc:
   api-docs:

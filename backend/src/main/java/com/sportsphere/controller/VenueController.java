@@ -7,6 +7,7 @@ import com.sportsphere.dto.request.venue.UpdateVenueRequest;
 import com.sportsphere.dto.response.ApiResponse;
 import com.sportsphere.dto.response.PagedResponse;
 import com.sportsphere.dto.response.venue.VenueResponse;
+import com.sportsphere.service.PincodeLocationService;
 import com.sportsphere.service.VenueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,6 +27,7 @@ import java.util.List;
 public class VenueController {
 
     private final VenueService venueService;
+    private final PincodeLocationService pincodeLocationService;
 
     @GetMapping
     @Operation(summary = "Get all active venues (paginated)")
@@ -39,9 +41,10 @@ public class VenueController {
     }
 
     @GetMapping("/search")
-    @Operation(summary = "Search and filter venues by city, sport, price, rating, keyword")
+    @Operation(summary = "Search and filter venues by city, pincode, sport, price, rating, keyword")
     public ResponseEntity<ApiResponse<PagedResponse<VenueResponse>>> searchVenues(
             @RequestParam(required = false) String city,
+            @RequestParam(required = false) String pincode,
             @RequestParam(required = false) String sport,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
@@ -52,7 +55,25 @@ public class VenueController {
             @RequestParam(defaultValue = AppConstants.DEFAULT_SORT_BY) String sortBy,
             @RequestParam(defaultValue = AppConstants.DEFAULT_SORT_DIRECTION) String sortDir) {
         return ResponseEntity.ok(ApiResponse.success("Search results retrieved successfully",
-                venueService.searchVenues(city, sport, minPrice, maxPrice, minRating, keyword, page, size, sortBy, sortDir)));
+                venueService.searchVenues(city, pincode, sport, minPrice, maxPrice, minRating, keyword, page, size, sortBy, sortDir)));
+    }
+
+    @GetMapping("/nearby")
+    @Operation(summary = "Get venues nearby a geographic location (sorted by distance)")
+    public ResponseEntity<ApiResponse<List<VenueResponse>>> getNearbyVenues(
+            @RequestParam Double lat,
+            @RequestParam Double lng,
+            @RequestParam(defaultValue = "25.0") Double radiusKm) {
+        return ResponseEntity.ok(ApiResponse.success("Nearby venues retrieved successfully",
+                venueService.getNearbyVenues(lat, lng, radiusKm)));
+    }
+
+    @GetMapping("/pincode/lookup")
+    @Operation(summary = "Lookup Indian PIN code details and geographic metadata")
+    public ResponseEntity<ApiResponse<PincodeLocationService.PincodeInfo>> lookupPincode(@RequestParam String pincode) {
+        return pincodeLocationService.resolvePincode(pincode)
+                .map(info -> ResponseEntity.ok(ApiResponse.success("Pincode resolved successfully", info)))
+                .orElse(ResponseEntity.ok(ApiResponse.error("Pincode could not be resolved")));
     }
 
     @GetMapping("/featured")

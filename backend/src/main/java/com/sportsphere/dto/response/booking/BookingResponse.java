@@ -34,6 +34,9 @@ public class BookingResponse {
     private PaymentStatus paymentStatus;
     private BigDecimal totalAmount;
     private BigDecimal refundAmount;
+    private String stripePaymentIntentId;
+    private String stripeClientSecret;
+    private String stripePublishableKey;
     private LocalDateTime bookedAt;
     private LocalDateTime cancelledAt;
     private String cancellationReason;

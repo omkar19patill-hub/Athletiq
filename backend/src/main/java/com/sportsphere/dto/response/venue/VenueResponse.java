@@ -27,5 +27,6 @@ public class VenueResponse {
     private Double averageRating;
     private Long totalReviews;
     private Long totalCourts;
+    private Double distanceKm;
     private LocalDateTime createdAt;
 }

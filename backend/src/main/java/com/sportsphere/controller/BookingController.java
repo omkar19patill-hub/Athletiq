@@ -97,4 +97,22 @@ public class BookingController {
         return ResponseEntity.ok(ApiResponse.success("Booking status updated successfully",
                 bookingService.updateBookingStatus(id, status)));
     }
+
+    @PostMapping("/{id}/accept")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Accept/Confirm a pending booking (Turf Owner/Admin)")
+    public ResponseEntity<ApiResponse<BookingResponse>> acceptBooking(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success("Booking confirmed successfully by turf owner",
+                bookingService.updateBookingStatus(id, BookingStatus.CONFIRMED)));
+    }
+
+    @PostMapping("/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Decline/Reject a pending booking (Turf Owner/Admin)")
+    public ResponseEntity<ApiResponse<BookingResponse>> rejectBooking(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason) {
+        return ResponseEntity.ok(ApiResponse.success("Booking request declined successfully",
+                bookingService.rejectBooking(id, reason)));
+    }
 }

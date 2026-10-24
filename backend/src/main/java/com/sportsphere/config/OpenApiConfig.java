@@ -13,16 +13,16 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI sportSphereOpenAPI() {
+    public OpenAPI athletiqOpenAPI() {
         final String securitySchemeName = "bearerAuth";
         return new OpenAPI()
                 .info(new Info()
-                        .title("SportSphere API")
-                        .description("Multi Venue Sports Turf Booking Platform REST API")
+                        .title("Athletiq API")
+                        .description("Athletiq - Multi-Venue Floodlight Sports Turf & Court Booking Platform REST API")
                         .version("v1.0.0")
                         .contact(new Contact()
-                                .name("SportSphere Team")
-                                .email("dev@sportsphere.com")))
+                                .name("Athletiq Team")
+                                .email("dev@athletiq.com")))
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName, new SecurityScheme()
