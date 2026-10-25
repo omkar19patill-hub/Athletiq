@@ -118,7 +118,7 @@ export const AdminDashboard = () => {
                 Earnings & Operations Dashboard
               </h1>
               <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                Real-time booking revenue, court capacity utilization, and settlement metrics
+                Bookings, revenue and court usage for your venues
               </p>
             </div>
 
@@ -331,9 +331,9 @@ export const AdminDashboard = () => {
                   <h3 className="text-base font-bold text-white font-display">
                     Incoming Turf Booking Requests
                   </h3>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
                     pendingBookings.length > 0 
-                      ? 'bg-amber-500 text-slate-950 font-black animate-pulse' 
+                      ? 'bg-amber-500 text-slate-950 font-bold animate-pulse' 
                       : 'bg-slate-800 text-slate-400'
                   }`}>
                     {pendingBookings.length} {pendingBookings.length === 1 ? 'Request' : 'Requests'}
@@ -434,7 +434,7 @@ export const AdminDashboard = () => {
           <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-950/40">
             <div>
               <h3 className="text-sm font-bold text-white">Recent Customer Bookings</h3>
-              <p className="text-xs text-slate-400 mt-0.5">Real-time slot reservations across your sports complexes</p>
+              <p className="text-xs text-slate-400 mt-0.5">Recent slot reservations across your venues</p>
             </div>
             <Link to="/admin/bookings" className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors">
               <span>View All</span>

@@ -1,3 +1,5 @@
+import colors from 'tailwindcss/colors';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -32,6 +34,8 @@ export default {
           gold: '#F59E0B',
           amber: '#D97706',
         },
+        // Markup uses bare `text-cyan` / `bg-cyan/10`; give cyan a default (floodlight) shade
+        cyan: { ...colors.cyan, DEFAULT: '#00E5FF' },
         primary: {
           DEFAULT: '#00FF87',
           light: '#60FFA8',
@@ -51,24 +55,30 @@ export default {
       fontFamily: {
         display: ['"Plus Jakarta Sans"', 'sans-serif'],
         sans: ['"Inter"', 'sans-serif'],
-        mono: ['monospace'],
+        // Used for IDs and numbers; system mono keeps it crisp and consistent
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       borderRadius: {
         'card': '20px',
         'ticket': '24px',
       },
+      // Soft, layered elevation. Legacy "brutal" names are kept so existing
+      // markup keeps working, but they now map to the refined shadows.
       boxShadow: {
-        'brutal': '4px 4px 0px #000000',
-        'brutal-sm': '2px 2px 0px #000000',
-        'brutal-lg': '6px 6px 0px #000000',
-        'brutal-volt': '4px 4px 0px #00FF87',
-        'brutal-cyan': '4px 4px 0px #00E5FF',
-        'brutal-amber': '4px 4px 0px #F59E0B',
-        'brutal-white': '4px 4px 0px #FFFFFF',
-        'neon-volt': '0 0 35px -5px rgba(0, 255, 135, 0.4)',
-        'neon-cyan': '0 0 35px -5px rgba(0, 229, 255, 0.4)',
-        'stadium-card': '4px 4px 0px #000000',
-        'glow-subtle': '3px 3px 0px #000000',
+        'card': '0 1px 0 0 rgba(255,255,255,0.04) inset, 0 12px 32px -16px rgba(0,0,0,0.7)',
+        'raised': '0 1px 0 0 rgba(255,255,255,0.05) inset, 0 20px 48px -20px rgba(0,0,0,0.85)',
+        'volt': '0 0 0 1px rgba(0,255,135,0.25), 0 10px 30px -12px rgba(0,255,135,0.35)',
+        'brutal': '0 1px 0 0 rgba(255,255,255,0.04) inset, 0 12px 32px -16px rgba(0,0,0,0.7)',
+        'brutal-sm': '0 6px 16px -10px rgba(0,0,0,0.7)',
+        'brutal-lg': '0 1px 0 0 rgba(255,255,255,0.05) inset, 0 20px 48px -20px rgba(0,0,0,0.85)',
+        'brutal-volt': '0 0 0 1px rgba(0,255,135,0.25), 0 10px 30px -12px rgba(0,255,135,0.35)',
+        'brutal-cyan': '0 0 0 1px rgba(0,229,255,0.25), 0 10px 30px -12px rgba(0,229,255,0.3)',
+        'brutal-amber': '0 0 0 1px rgba(245,158,11,0.25), 0 10px 30px -12px rgba(245,158,11,0.3)',
+        'brutal-white': '0 0 0 1px rgba(255,255,255,0.15), 0 10px 30px -12px rgba(0,0,0,0.6)',
+        'neon-volt': '0 0 24px -6px rgba(0, 255, 135, 0.35)',
+        'neon-cyan': '0 0 24px -6px rgba(0, 229, 255, 0.35)',
+        'stadium-card': '0 1px 0 0 rgba(255,255,255,0.04) inset, 0 12px 32px -16px rgba(0,0,0,0.7)',
+        'glow-subtle': '0 6px 16px -10px rgba(0,0,0,0.7)',
       },
       keyframes: {
         marquee: {

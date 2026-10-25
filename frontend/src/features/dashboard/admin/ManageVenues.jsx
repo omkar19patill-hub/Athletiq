@@ -78,20 +78,20 @@ export const ManageVenues = () => {
           <div className="absolute top-0 right-0 w-80 h-80 bg-volt/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-volt/10 border border-volt/30 text-volt text-xs font-mono font-bold uppercase tracking-wider mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-volt/10 border border-volt/30 text-volt text-xs font-bold uppercase tracking-wider mb-3">
               <Building2 className="w-3.5 h-3.5" /> TURF & ARENA ASSET REGISTRY
             </div>
-            <h1 className="text-3xl md:text-4xl font-black font-display text-white tracking-tight uppercase">
+            <h1 className="text-3xl md:text-4xl font-bold font-display text-white tracking-tight">
               Manage Sports Venues
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 font-mono">
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               Register floodlit stadiums, indoor wooden courts, and multi-sport complexes
             </p>
           </div>
 
           <button
             onClick={() => setShowModal(true)}
-            className="relative z-10 px-5 py-3 bg-gradient-to-r from-volt to-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-neon-volt hover:scale-105 transition-all flex items-center gap-2"
+            className="relative z-10 px-5 py-3 bg-gradient-to-r from-volt to-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl shadow-neon-volt hover:scale-105 transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4 stroke-[3]" /> Register New Venue
           </button>
@@ -106,7 +106,7 @@ export const ManageVenues = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-white/[0.04] text-slate-400 uppercase tracking-wider font-mono text-[11px] border-b border-white/10">
+                <thead className="bg-white/[0.04] text-slate-400 uppercase tracking-wider text-[11px] border-b border-white/10">
                   <tr>
                     <th className="px-6 py-4">ID</th>
                     <th className="px-6 py-4">Venue & Specification</th>
@@ -135,7 +135,7 @@ export const ManageVenues = () => {
                         <span className="font-mono font-bold text-white">{v.totalCourts || 0} Courts</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-black uppercase tracking-wider bg-volt/10 text-volt border border-volt/30">
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-volt/10 text-volt border border-volt/30">
                           {v.status || 'ACTIVE'}
                         </span>
                       </td>
@@ -173,8 +173,8 @@ export const ManageVenues = () => {
 
             <div className="relative z-10 flex justify-between items-center border-b border-white/10 pb-4">
               <div>
-                <h3 className="text-lg font-black font-display uppercase tracking-wider text-white">Register Arena Facility</h3>
-                <p className="text-xs font-mono text-slate-400">Add new turf or sports complex to the network</p>
+                <h3 className="text-lg font-bold font-display tracking-wider text-white">Register Arena Facility</h3>
+                <p className="text-xs text-slate-400">Add new turf or sports complex to the network</p>
               </div>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors">
                 <X className="w-5 h-5" />
@@ -190,7 +190,7 @@ export const ManageVenues = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Apex Floodlight Arena"
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-volt focus:ring-1 focus:ring-volt font-sans"
+                  className="w-full px-3.5 py-2.5 neo-input rounded-xl text-sm text-white placeholder-slate-500 font-sans"
                 />
               </div>
 
@@ -200,8 +200,8 @@ export const ManageVenues = () => {
                   rows="2"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="FIFA standard synthetic 3G turf with floodlight towers..."
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-volt focus:ring-1 focus:ring-volt font-sans"
+                  placeholder="e.g. Synthetic turf with floodlights…"
+                  className="w-full px-3.5 py-2.5 neo-input rounded-xl text-sm text-white placeholder-slate-500 font-sans"
                 ></textarea>
               </div>
 
@@ -214,7 +214,7 @@ export const ManageVenues = () => {
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     placeholder="Mumbai"
-                    className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-volt focus:ring-1 focus:ring-volt font-sans"
+                    className="w-full px-3.5 py-2.5 neo-input rounded-xl text-sm text-white placeholder-slate-500 font-sans"
                   />
                 </div>
                 <div>
@@ -225,7 +225,7 @@ export const ManageVenues = () => {
                     value={formData.state}
                     onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                     placeholder="Maharashtra"
-                    className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-volt focus:ring-1 focus:ring-volt font-sans"
+                    className="w-full px-3.5 py-2.5 neo-input rounded-xl text-sm text-white placeholder-slate-500 font-sans"
                   />
                 </div>
               </div>
@@ -239,7 +239,7 @@ export const ManageVenues = () => {
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     placeholder="Link Road, Andheri West"
-                    className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-volt focus:ring-1 focus:ring-volt font-sans"
+                    className="w-full px-3.5 py-2.5 neo-input rounded-xl text-sm text-white placeholder-slate-500 font-sans"
                   />
                 </div>
                 <div>
@@ -250,7 +250,7 @@ export const ManageVenues = () => {
                     value={formData.pincode}
                     onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
                     placeholder="400053"
-                    className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-volt focus:ring-1 focus:ring-volt font-sans"
+                    className="w-full px-3.5 py-2.5 neo-input rounded-xl text-sm text-white placeholder-slate-500 font-sans"
                   />
                 </div>
               </div>
@@ -266,7 +266,7 @@ export const ManageVenues = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 bg-gradient-to-r from-volt to-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-neon-volt hover:scale-105 transition-all disabled:opacity-50"
+                  className="px-5 py-2.5 bg-gradient-to-r from-volt to-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl shadow-neon-volt hover:scale-105 transition-all disabled:opacity-50"
                 >
                   {submitting ? 'Registering...' : 'Register Arena'}
                 </button>

@@ -250,18 +250,18 @@ export const TurfLocationMap = ({
   }, [venues, selectedVenueId, centerCoords]);
 
   return (
-    <div className="relative w-full rounded-xl overflow-hidden border-2 border-black shadow-[4px_4px_0px_#000000] bg-slate-950" style={{ height }}>
+    <div className="relative w-full rounded-xl overflow-hidden border border-white/10 shadow-card bg-slate-950" style={{ height }}>
       {/* Map Target Div */}
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 
       {/* Floating Radar Status HUD */}
-      <div className="absolute top-3 left-3 z-[400] flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0B0F17] border-2 border-black shadow-[3px_3px_0px_#000] text-xs font-bold text-white">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#00FF87] border border-black animate-pulse" />
+      <div className="absolute top-3 left-3 z-[400] flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0B0F17] border border-white/10 shadow-card text-xs font-bold text-white">
+        <span className="w-2.5 h-2.5 rounded-full bg-[#00FF87] border border-white/10 animate-pulse" />
         <span>
           {pincodeInfo ? `Radar: PIN ${pincodeInfo.pincode} (${pincodeInfo.area || pincodeInfo.city})` : 'Live Stadium Radar'}
         </span>
         <span className="text-slate-600">•</span>
-        <span className="text-[#00FF87] font-black">{venues.length} Arenas Active</span>
+        <span className="text-[#00FF87] font-bold">{venues.length} Arenas Active</span>
       </div>
 
       {/* Google Maps External Directions Bar */}
@@ -274,7 +274,7 @@ export const TurfLocationMap = ({
           }
           target="_blank" 
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0F172A] hover:bg-[#1E293B] border-2 border-black shadow-[3px_3px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none text-xs font-black text-[#00E5FF] transition-all group"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0F172A] hover:bg-[#1E293B] border border-white/10 shadow-card active:translate-x-0.5 active:translate-y-0.5 active:shadow-none text-xs font-bold text-[#00E5FF] transition-all group"
         >
           <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           <span>Open in Google Maps</span>

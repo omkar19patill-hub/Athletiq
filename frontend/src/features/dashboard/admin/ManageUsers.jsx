@@ -52,14 +52,14 @@ export const ManageUsers = () => {
           <div className="absolute top-0 right-0 w-80 h-80 bg-volt/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-volt/10 border border-volt/30 text-volt text-xs font-mono font-bold uppercase tracking-wider mb-3">
-              <Users className="w-3.5 h-3.5" /> ATHLETE & SQUAD ROSTER
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-volt/10 border border-volt/30 text-volt text-xs font-bold uppercase tracking-wider mb-3">
+              <Users className="w-3.5 h-3.5" /> Users
             </div>
-            <h1 className="text-3xl md:text-4xl font-black font-display text-white tracking-tight uppercase">
-              User & Gate Access Management
+            <h1 className="text-3xl md:text-4xl font-bold font-display text-white tracking-tight">
+              User management
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 font-mono">
-              Monitor registered players, arena owners, turnstile permissions, and ban list
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              View registered players and venue owners, and block or remove accounts
             </p>
           </div>
         </div>
@@ -68,20 +68,20 @@ export const ManageUsers = () => {
         <div className="glass-panel border-white/10 rounded-3xl shadow-2xl overflow-hidden">
           {loading ? (
             <div className="p-16 text-center text-slate-400 font-mono text-xs flex items-center justify-center gap-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-volt animate-ping" /> Loading player roster...
+              <span className="w-2.5 h-2.5 rounded-full bg-volt animate-ping" /> Loading users…
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-white/[0.04] text-slate-400 uppercase tracking-wider font-mono text-[11px] border-b border-white/10">
+                <thead className="bg-white/[0.04] text-slate-400 uppercase tracking-wider text-[11px] border-b border-white/10">
                   <tr>
                     <th className="px-6 py-4">ID</th>
                     <th className="px-6 py-4">Athlete / Name</th>
                     <th className="px-6 py-4">Email</th>
                     <th className="px-6 py-4">Phone</th>
-                    <th className="px-6 py-4">Clearance Role</th>
-                    <th className="px-6 py-4">Turnstile Status</th>
-                    <th className="px-6 py-4 text-right">Gate Actions</th>
+                    <th className="px-6 py-4">Role</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 font-medium text-slate-300">
@@ -94,7 +94,7 @@ export const ManageUsers = () => {
                       <td className="px-6 py-4 font-mono text-slate-300">{u.email}</td>
                       <td className="px-6 py-4 font-mono text-slate-400">{u.phone || 'N/A'}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-black uppercase tracking-wider border ${
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                           u.role === 'ADMIN' 
                             ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' 
                             : 'bg-cyan/10 border-cyan/30 text-cyan'
@@ -103,25 +103,25 @@ export const ManageUsers = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-black uppercase tracking-wider border ${
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                           u.isBlocked 
                             ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' 
                             : 'bg-volt/10 border-volt/30 text-volt'
                         }`}>
-                          {u.isBlocked ? 'ACCESS REVOKED' : 'AUTHORIZED'}
+                          {u.isBlocked ? 'Blocked' : 'Active'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         {u.role !== 'ADMIN' && (
                           <button
                             onClick={() => handleToggleBlock(u.id)}
-                            className={`px-3 py-1 font-mono font-bold rounded-lg text-[10px] uppercase tracking-wider transition-colors border ${
+                            className={`px-3 py-1 font-bold rounded-lg text-[10px] uppercase tracking-wider transition-colors border ${
                               u.isBlocked 
                                 ? 'bg-volt/10 border-volt/30 text-volt hover:bg-volt hover:text-slate-950' 
                                 : 'bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white'
                             }`}
                           >
-                            {u.isBlocked ? 'Restore Access' : 'Revoke Access'}
+                            {u.isBlocked ? 'Unblock' : 'Block'}
                           </button>
                         )}
                         {u.role !== 'ADMIN' && (

@@ -40,7 +40,7 @@ export const CustomerDashboard = () => {
   };
 
   const handleCancelBooking = async (bookingId) => {
-    if (!window.confirm('Are you sure you want to cancel this booking? Automated Stripe refund will apply based on time remaining.')) return;
+    if (!window.confirm('Are you sure you want to cancel this booking? A refund may apply depending on how much time is left before your slot.')) return;
     
     setCancellingId(bookingId);
     try {
@@ -64,20 +64,20 @@ export const CustomerDashboard = () => {
           <div className="absolute top-0 right-0 w-80 h-80 bg-volt-neon/5 rounded-full blur-3xl pointer-events-none"></div>
 
           <div className="relative z-10 space-y-1">
-            <div className="text-volt-neon font-mono text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
+            <div className="text-volt-neon text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 fill-volt-neon" /> Command Headquarters
             </div>
-            <h1 className="text-3xl font-black font-display text-white uppercase tracking-tight">
+            <h1 className="text-3xl font-bold font-display text-white tracking-tight">
               Player Matchday Dashboard
             </h1>
-            <p className="text-xs text-slate-400 font-mono">
+            <p className="text-xs text-slate-400">
               Manage your turf reservations, upcoming squad fixtures, and VIP match passes
             </p>
           </div>
 
           <Link
             to="/venues"
-            className="relative z-10 px-6 py-3 bg-volt-neon hover:bg-emerald-400 text-black font-black text-xs font-display uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(0,255,135,0.4)] transition-all flex items-center gap-2"
+            className="relative z-10 px-6 py-3 bg-volt-neon hover:bg-emerald-400 text-black font-bold text-xs font-display tracking-wider rounded-xl shadow-[0_0_20px_rgba(0,255,135,0.4)] transition-all flex items-center gap-2"
           >
             <span>+ Book New Match</span>
           </Link>
@@ -91,8 +91,8 @@ export const CustomerDashboard = () => {
               <Calendar className="w-7 h-7" />
             </div>
             <div>
-              <span className="text-3xl font-black font-display text-white block">{stats?.upcomingBookings || 0}</span>
-              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Upcoming</span>
+              <span className="text-3xl font-bold font-display text-white block">{stats?.upcomingBookings || 0}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upcoming</span>
             </div>
           </div>
 
@@ -101,8 +101,8 @@ export const CustomerDashboard = () => {
               <Clock className="w-7 h-7" />
             </div>
             <div>
-              <span className="text-3xl font-black font-display text-white block">{stats?.totalBookings || 0}</span>
-              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Total Matches</span>
+              <span className="text-3xl font-bold font-display text-white block">{stats?.totalBookings || 0}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Matches</span>
             </div>
           </div>
 
@@ -111,8 +111,8 @@ export const CustomerDashboard = () => {
               <XCircle className="w-7 h-7" />
             </div>
             <div>
-              <span className="text-3xl font-black font-display text-white block">{stats?.cancelledBookings || 0}</span>
-              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Cancelled</span>
+              <span className="text-3xl font-bold font-display text-white block">{stats?.cancelledBookings || 0}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cancelled</span>
             </div>
           </div>
 
@@ -121,8 +121,8 @@ export const CustomerDashboard = () => {
               <Heart className="w-7 h-7 fill-amber-400" />
             </div>
             <div>
-              <span className="text-3xl font-black font-display text-white block">{stats?.favouriteVenues || 0}</span>
-              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Favorites</span>
+              <span className="text-3xl font-bold font-display text-white block">{stats?.favouriteVenues || 0}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Favorites</span>
             </div>
           </div>
 
@@ -131,7 +131,7 @@ export const CustomerDashboard = () => {
         {/* Bookings History Table in Dark Stadium Style */}
         <div className="bg-[#0C1017] rounded-3xl border border-white/[0.1] shadow-2xl overflow-hidden">
           <div className="p-6 border-b border-white/[0.08] flex justify-between items-center">
-            <h3 className="text-lg font-black font-display text-white uppercase tracking-tight">
+            <h3 className="text-lg font-bold font-display text-white tracking-tight">
               Recent Matchday Reservations
             </h3>
             <span className="text-xs font-mono text-slate-400">Total: {bookings.length}</span>
@@ -164,16 +164,16 @@ export const CustomerDashboard = () => {
                 <tbody className="divide-y divide-white/[0.04] font-medium text-slate-300">
                   {bookings.map((bk) => (
                     <tr key={bk.id} className="hover:bg-white/[0.03] transition-colors">
-                      <td className="px-6 py-4 font-black text-white font-mono">{bk.bookingNumber}</td>
+                      <td className="px-6 py-4 font-bold text-white font-mono">{bk.bookingNumber}</td>
                       <td className="px-6 py-4 font-bold text-white font-display">{bk.venueName}</td>
                       <td className="px-6 py-4 text-slate-300">{bk.courtName}</td>
                       <td className="px-6 py-4">
                         <span className="block font-bold text-white">{bk.bookingDate}</span>
                         <span className="text-[11px] text-slate-500">{bk.startTime?.substring(0, 5)} - {bk.endTime?.substring(0, 5)}</span>
                       </td>
-                      <td className="px-6 py-4 font-black text-volt-neon font-display text-sm">₹{bk.totalAmount}</td>
+                      <td className="px-6 py-4 font-bold text-volt-neon font-display text-sm">₹{bk.totalAmount}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                           bk.bookingStatus === 'CONFIRMED' ? 'bg-emerald-500/10 text-volt-neon border border-volt-neon/40' :
                           bk.bookingStatus === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/40 animate-pulse' :
                           bk.bookingStatus === 'CANCELLED' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/40' : 'bg-white/10 text-slate-300'
@@ -195,7 +195,7 @@ export const CustomerDashboard = () => {
                             onClick={() => handleCancelBooking(bk.id)}
                             className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold rounded-xl text-[11px] disabled:opacity-50"
                           >
-                            {cancellingId === bk.id ? 'Refunding...' : 'Cancel'}
+                            {cancellingId === bk.id ? 'Cancelling…' : 'Cancel'}
                           </button>
                         )}
                       </td>

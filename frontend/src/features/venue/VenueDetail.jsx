@@ -7,7 +7,7 @@ import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
 import { 
   MapPin, Star, Heart, Calendar, Clock, CheckCircle2, 
-  Layers, ArrowRight, ExternalLink 
+  Layers, ArrowRight, ExternalLink, Building2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { TurfLocationMap } from './TurfLocationMap';
@@ -130,60 +130,50 @@ export const VenueDetail = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
         
         {/* Venue Header & Photos */}
-        <div className="rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-xl relative">
-          
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
-            {/* Primary Photo View */}
-            <div className="lg:col-span-8 relative h-[360px] sm:h-[440px] overflow-hidden bg-slate-950 group">
-              <img
-                src={venue.imageUrls?.[0] || 'https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=1600'}
-                alt={venue.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-black/30"></div>
+        <div className="glass-panel relative overflow-hidden">
 
-              {/* Badges */}
-              <div className="absolute top-4 left-4 flex items-center gap-2">
-                <span className="px-3 py-1 rounded-md text-xs font-medium bg-slate-900/80 backdrop-blur-md text-emerald-400 border border-slate-700/60 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  Verified Arena
-                </span>
-                <span className="px-3 py-1 rounded-md text-xs font-medium bg-slate-900/80 backdrop-blur-md text-slate-300 border border-slate-700/60">
-                  {venue.status}
-                </span>
+          {/* Photos: only the venue's own images are shown */}
+          {(() => {
+            const photos = (venue.imageUrls || []).filter(Boolean);
+            if (photos.length === 0) {
+              return (
+                <div className="flex h-56 items-center justify-center bg-gradient-to-br from-emerald-500/10 via-transparent to-sky-500/10 sm:h-64" aria-hidden="true">
+                  <Building2 className="h-12 w-12 text-slate-600" />
+                </div>
+              );
+            }
+            return (
+              <div className={`grid grid-cols-1 gap-1.5 ${photos.length > 1 ? 'lg:grid-cols-12' : ''}`}>
+                <div className={`group relative h-[300px] overflow-hidden bg-[#0B0F17] sm:h-[420px] ${photos.length > 1 ? 'lg:col-span-8' : ''}`}>
+                  <img src={photos[0]} alt={venue.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F17]/80 via-transparent to-transparent" aria-hidden="true" />
+                </div>
+                {photos.length > 1 && (
+                  <div className="hidden gap-1.5 lg:col-span-4 lg:grid" style={{ gridTemplateRows: `repeat(${Math.min(photos.length - 1, 2)}, minmax(0, 1fr))` }}>
+                    {photos.slice(1, 3).map((src, i) => (
+                      <div key={src} className="relative overflow-hidden bg-[#0B0F17]">
+                        <img src={src} alt={`${venue.name} photo ${i + 2}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.03]" />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
+            );
+          })()}
 
-            {/* Secondary Photo Stack */}
-            <div className="hidden lg:grid lg:col-span-4 grid-rows-2 gap-2 p-2 bg-slate-900">
-              <div className="relative h-full overflow-hidden rounded-xl bg-slate-950">
-                <img
-                  src={venue.imageUrls?.[1] || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800'}
-                  alt="Secondary court perspective"
-                  className="w-full h-full object-cover hover:scale-105 transition-all duration-300"
-                />
-              </div>
-
-              <div className="relative h-full overflow-hidden rounded-xl bg-slate-950">
-                <img
-                  src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800"
-                  alt="Dugout view"
-                  className="w-full h-full object-cover hover:scale-105 transition-all duration-300"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Venue Info Strip */}
-          <div className="p-6 sm:p-8 bg-slate-900 border-t border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-1.5">
-              <h1 className="text-2xl sm:text-3xl font-bold font-display text-white">
+          {/* Venue Info */}
+          <div className="flex flex-col items-start justify-between gap-6 border-t border-white/[0.07] p-6 sm:p-8 md:flex-row md:items-center">
+            <div className="space-y-2">
+              {venue.status && (
+                <span className="sticker-badge sticker-volt">{venue.status}</span>
+              )}
+              <h1 className="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 {venue.name}
               </h1>
-              <div className="flex flex-wrap items-center gap-3 pt-0.5">
-                <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{venue.address}, {venue.city}, {venue.state} • PIN {venue.pincode}</span>
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="flex items-center gap-2 text-sm text-slate-400">
+                  <MapPin className="h-4 w-4 shrink-0 text-emerald-400" />
+                  <span>{venue.address}, {venue.city}, {venue.state} · PIN {venue.pincode}</span>
                 </p>
 
                 {venue.latitude && venue.longitude && (
@@ -191,112 +181,124 @@ export const VenueDetail = () => {
                     href={`https://www.google.com/maps/dir/?api=1&destination=${venue.latitude},${venue.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-400 text-xs font-semibold transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-sky-400/30 bg-sky-400/10 px-2.5 py-1 text-xs font-semibold text-sky-300 transition-colors hover:bg-sky-400/20"
                   >
-                    <ExternalLink className="w-3 h-3" />
-                    <span>Get Directions</span>
+                    <ExternalLink className="h-3 w-3" />
+                    Get directions
                   </a>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <div className="flex items-center justify-end gap-1.5 text-amber-400 font-bold text-lg">
-                  <Star className="w-5 h-5 fill-amber-400 text-amber-400" /> {venue.averageRating || '4.8'}
+            <div className="flex items-center gap-3">
+              {venue.averageRating != null && Number(venue.totalReviews) > 0 ? (
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-right">
+                  <div className="flex items-center justify-end gap-1.5 text-lg font-bold text-amber-300">
+                    <Star className="h-5 w-5 fill-amber-400 text-amber-400" /> {Number(venue.averageRating).toFixed(1)}
+                  </div>
+                  <span className="text-[11px] text-slate-400">
+                    {venue.totalReviews} {Number(venue.totalReviews) === 1 ? 'review' : 'reviews'}
+                  </span>
                 </div>
-                <span className="text-[11px] text-slate-400">
-                  {venue.totalReviews || 12} Verified Reviews
-                </span>
-              </div>
+              ) : (
+                <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-slate-400">No reviews yet</span>
+              )}
 
               {user?.role === 'CUSTOMER' && (
                 <button
                   onClick={handleToggleFav}
-                  className={`p-3 rounded-xl border transition-all ${
-                    isFav 
-                      ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' 
-                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-rose-400'
+                  aria-pressed={isFav}
+                  aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                  className={`rounded-xl border p-3 transition-all ${
+                    isFav
+                      ? 'border-rose-400/40 bg-rose-500/10 text-rose-300'
+                      : 'border-white/10 bg-white/[0.03] text-slate-400 hover:text-rose-300'
                   }`}
                 >
-                  <Heart className={`w-5 h-5 ${isFav ? 'fill-rose-500' : ''}`} />
+                  <Heart className={`h-5 w-5 ${isFav ? 'fill-rose-400' : ''}`} />
                 </button>
               )}
             </div>
           </div>
 
           {/* Description */}
-          <div className="px-6 sm:px-8 pb-6 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 pt-4">
-            {venue.description}
-          </div>
-
+          {venue.description && (
+            <div className="border-t border-white/[0.07] px-6 pb-6 pt-4 text-sm leading-relaxed text-slate-300 sm:px-8">
+              {venue.description}
+            </div>
+          )}
         </div>
 
         {/* Court & Slot Booking Section */}
-        <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl p-6 sm:p-8 space-y-6">
-          
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-5">
+        <div className="glass-panel space-y-6 p-6 sm:p-8">
+
+          <div className="flex flex-col items-start justify-between gap-4 border-b border-white/[0.07] pb-5 sm:flex-row sm:items-end">
             <div>
-              <span className="text-emerald-400 text-xs font-semibold uppercase tracking-wider block mb-1">
-                Court Schedules
+              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                Court schedule
               </span>
-              <h2 className="text-xl sm:text-2xl font-bold font-display text-white">
-                Select Court & Reserve Slot
+              <h2 className="font-display text-2xl font-bold text-white">
+                Select a court and slot
               </h2>
             </div>
 
             {/* Date Picker */}
-            <div className="flex items-center gap-2.5 bg-slate-800/70 px-3.5 py-2 rounded-xl border border-slate-700/80">
-              <Calendar className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="text-xs font-medium text-slate-300">Date:</span>
+            <label className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2">
+              <Calendar className="h-4 w-4 shrink-0 text-emerald-400" />
+              <span className="text-xs font-medium text-slate-300">Date</span>
               <input
                 type="date"
                 value={selectedDate}
                 min={localDateString()}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-slate-900 px-2.5 py-1 border border-slate-700 rounded-lg text-xs font-medium text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                className="neo-input cursor-pointer px-2.5 py-1 text-xs font-medium"
               />
-            </div>
+            </label>
           </div>
 
           {/* Court Selector Tabs */}
           {courts.length === 0 ? (
-            <div className="p-8 text-center bg-slate-950/40 rounded-xl border border-slate-800 text-slate-400 text-xs">
-              No courts currently registered for this venue.
+            <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-8 text-center text-sm text-slate-400">
+              No courts are registered for this venue yet.
             </div>
           ) : (
             <div className="space-y-6">
-              
-              <div className="flex flex-wrap gap-2.5">
-                {courts.map((court) => (
-                  <button
-                    key={court.id}
-                    onClick={() => setSelectedCourt(court)}
-                    className={`px-4 py-2.5 rounded-xl border text-xs font-semibold transition-all flex items-center gap-2 ${
-                      selectedCourt?.id === court.id
-                        ? 'bg-emerald-500 text-slate-950 border-emerald-500 shadow-sm'
-                        : 'bg-slate-800/60 border-slate-700/80 text-slate-300 hover:text-white hover:bg-slate-800'
-                    }`}
-                  >
-                    <Layers className="w-3.5 h-3.5" />
-                    <span>{court.courtName}</span>
-                    <span className="opacity-80">({court.sportType})</span>
-                    <span className="ml-1 font-bold">₹{court.pricePerHour}/hr</span>
-                  </button>
-                ))}
+
+              <div className="flex flex-wrap gap-2.5" role="radiogroup" aria-label="Courts">
+                {courts.map((court) => {
+                  const active = selectedCourt?.id === court.id;
+                  return (
+                    <button
+                      key={court.id}
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setSelectedCourt(court)}
+                      className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-semibold transition-all ${
+                        active
+                          ? 'border-emerald-400/50 bg-emerald-500/15 text-white shadow-volt'
+                          : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:text-white'
+                      }`}
+                    >
+                      <Layers className={`h-3.5 w-3.5 ${active ? 'text-emerald-300' : 'text-slate-500'}`} />
+                      <span>{court.courtName}</span>
+                      <span className="text-slate-400">· {court.sportType}</span>
+                      <span className={`ml-1 rounded-md px-1.5 py-0.5 ${active ? 'bg-[#00FF87] text-[#04140B]' : 'bg-white/[0.06] text-slate-200'}`}>₹{court.pricePerHour}/hr</span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Slot Grid by Time Period */}
               <div className="space-y-6 pt-2">
                 {loadingSlots ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-6">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <div key={i} className="h-16 rounded-xl bg-slate-800/50 animate-pulse"></div>
+                      <div key={i} className="h-16 animate-pulse rounded-xl bg-white/[0.04]"></div>
                     ))}
                   </div>
                 ) : slots.length === 0 ? (
-                  <div className="p-8 text-center rounded-xl bg-slate-950/40 border border-slate-800 text-slate-400 text-xs">
-                    No time slots configured for {selectedCourt?.courtName} on {selectedDate}. Please select another date.
+                  <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-8 text-center text-sm text-slate-400">
+                    No time slots for {selectedCourt?.courtName} on {selectedDate}. Try another date.
                   </div>
                 ) : (
                   phases.map((phaseTitle) => {
@@ -305,11 +307,11 @@ export const VenueDetail = () => {
 
                     return (
                       <div key={phaseTitle} className="space-y-3">
-                        <div className="text-xs font-semibold text-slate-300 flex items-center justify-between border-b border-slate-800/80 pb-2">
+                        <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 text-xs font-semibold text-slate-200">
                           <span className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400"></span> {phaseTitle}
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span> {phaseTitle}
                           </span>
-                          <span className="text-[11px] text-slate-400">
+                          <span className="text-[11px] font-medium text-slate-400">
                             {phaseSlots.filter(s => s.slotStatus === 'AVAILABLE' && !hasStarted(selectedDate, s.startTime)).length} available
                           </span>
                         </div>
@@ -324,17 +326,18 @@ export const VenueDetail = () => {
                                 key={slot.id}
                                 disabled={!isAvailable}
                                 onClick={() => handleSlotClick(slot)}
-                                className={`p-3 rounded-xl border text-center transition-all duration-150 flex flex-col items-center justify-center ${
+                                aria-label={`${slot.startTime.substring(0, 5)} to ${slot.endTime.substring(0, 5)}, ${isPast ? 'past' : slot.slotStatus === 'AVAILABLE' ? 'open' : 'booked'}`}
+                                className={`group flex flex-col items-center justify-center rounded-xl border p-3 text-center transition-all duration-150 ${
                                   isAvailable
-                                    ? 'bg-slate-800/60 border-emerald-500/30 hover:border-emerald-500 text-white hover:bg-emerald-500 hover:text-slate-950 cursor-pointer shadow-sm'
-                                    : 'bg-slate-950/60 border-slate-800/60 text-slate-600 cursor-not-allowed line-through'
+                                    ? 'cursor-pointer border-emerald-400/30 bg-emerald-500/[0.06] text-white hover:-translate-y-0.5 hover:border-[#00FF87] hover:bg-[#00FF87] hover:text-[#04140B] hover:shadow-volt'
+                                    : 'cursor-not-allowed border-white/[0.05] bg-black/30 text-slate-600'
                                 }`}
                               >
-                                <Clock className="w-3.5 h-3.5 mb-1 opacity-70" />
+                                <Clock className="mb-1 h-3.5 w-3.5 opacity-70" />
                                 <span className="text-xs font-semibold">
                                   {slot.startTime.substring(0, 5)} - {slot.endTime.substring(0, 5)}
                                 </span>
-                                <span className="text-[10px] font-medium mt-0.5">
+                                <span className={`mt-0.5 text-[10px] font-semibold uppercase tracking-wide ${isAvailable ? 'text-emerald-300 group-hover:text-[#04140B]' : ''}`}>
                                   {isPast ? 'Past' : slot.slotStatus === 'AVAILABLE' ? 'Open' : 'Booked'}
                                 </span>
                               </button>
@@ -355,14 +358,14 @@ export const VenueDetail = () => {
 
         {/* Venue Location & Radar Map */}
         {venue.latitude && venue.longitude && (
-          <div className="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl p-6 sm:p-8 space-y-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="glass-panel space-y-4 p-6 sm:p-8">
+            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <div>
-                <span className="text-emerald-400 text-xs font-semibold uppercase tracking-wider block mb-1">
-                  Geographic Location
+                <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.16em] text-emerald-400">
+                  Location
                 </span>
-                <h3 className="text-lg sm:text-xl font-bold font-display text-white">
-                  Arena Turf Coordinates & Directions
+                <h3 className="font-display text-xl font-bold text-white">
+                  Map and directions
                 </h3>
               </div>
 
@@ -370,14 +373,14 @@ export const VenueDetail = () => {
                 href={`https://www.google.com/maps/dir/?api=1&destination=${venue.latitude},${venue.longitude}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-secondary py-2 px-4 text-xs font-semibold rounded-xl flex items-center gap-2"
+                className="btn-secondary px-4 py-2 text-xs"
               >
-                <ExternalLink className="w-3.5 h-3.5 text-sky-400" />
-                <span>Open in Google Maps Navigation</span>
+                <ExternalLink className="h-3.5 w-3.5 text-sky-300" />
+                Open in Google Maps
               </a>
             </div>
 
-            <div className="rounded-xl overflow-hidden border border-slate-800">
+            <div className="overflow-hidden rounded-xl border border-white/[0.07]">
               <TurfLocationMap
                 venues={[venue]}
                 centerCoords={{ lat: venue.latitude, lng: venue.longitude }}

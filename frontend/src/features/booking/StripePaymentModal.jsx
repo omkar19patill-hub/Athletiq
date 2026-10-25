@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { paymentService } from '../../services/apiServices';
-import { X, CreditCard, Lock, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, CreditCard, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const StripePaymentModal = ({ booking, court, venue, slot, onClose }) => {
   const navigate = useNavigate();
@@ -74,18 +74,19 @@ export const StripePaymentModal = ({ booking, court, venue, slot, onClose }) => 
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-slate-900 rounded-2xl max-w-md w-full shadow-2xl border border-slate-800 overflow-hidden my-6 transition-all text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-label="Payment">
+      <div className="glass-panel my-6 w-full max-w-md overflow-hidden text-white">
         
         {/* Header */}
-        <div className="bg-slate-950/80 p-5 border-b border-slate-800 relative">
+        <div className="relative border-b border-white/[0.07] bg-white/[0.02] p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Secure Stripe Checkout
+              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Checkout with Stripe
             </div>
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-white"
+            aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
@@ -104,10 +105,6 @@ export const StripePaymentModal = ({ booking, court, venue, slot, onClose }) => 
 
           <div className="mt-2.5 flex items-center gap-2 text-[11px] text-slate-400">
             <span>Ref #{booking.bookingNumber}</span>
-            <span>•</span>
-            <span className="flex items-center gap-1 text-emerald-400 font-medium">
-              <Lock className="w-3 h-3" /> 256-bit encrypted
-            </span>
           </div>
         </div>
 
@@ -128,7 +125,7 @@ export const StripePaymentModal = ({ booking, court, venue, slot, onClose }) => 
           )}
 
           {/* Test Card Quick Fill Button */}
-          <div className="flex items-center justify-between bg-slate-800/50 border border-slate-700/60 p-2.5 rounded-xl text-xs">
+          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-xs">
             <span className="text-slate-400">Testing payments?</span>
             <button
               type="button"
@@ -149,7 +146,7 @@ export const StripePaymentModal = ({ booking, court, venue, slot, onClose }) => 
               value={cardholderName}
               onChange={(e) => setCardholderName(e.target.value)}
               placeholder="Full Name"
-              className="w-full px-3.5 py-2 bg-slate-800/60 border border-slate-700/80 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="neo-input w-full px-3.5 py-2.5 text-sm"
             />
           </div>
 
@@ -158,7 +155,7 @@ export const StripePaymentModal = ({ booking, court, venue, slot, onClose }) => 
               Card Number
             </label>
             <div className="relative">
-              <CreditCard className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <CreditCard className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
                 type="text"
                 required
@@ -166,7 +163,7 @@ export const StripePaymentModal = ({ booking, court, venue, slot, onClose }) => 
                 value={cardNumber}
                 onChange={(e) => setCardNumber(e.target.value)}
                 placeholder="4242 4242 4242 4242"
-                className="w-full pl-10 pr-4 py-2 bg-slate-800/60 border border-slate-700/80 rounded-xl text-sm font-medium text-white focus:outline-none focus:border-emerald-500"
+                className="neo-input w-full pl-10 pr-4 py-2.5 text-sm"
               />
             </div>
           </div>
@@ -183,7 +180,7 @@ export const StripePaymentModal = ({ booking, court, venue, slot, onClose }) => 
                 value={expiry}
                 onChange={(e) => setExpiry(e.target.value)}
                 placeholder="MM/YY"
-                className="w-full px-3.5 py-2 bg-slate-800/60 border border-slate-700/80 rounded-xl text-sm font-medium text-white focus:outline-none focus:border-emerald-500"
+                className="neo-input w-full px-3.5 py-2.5 text-sm"
               />
             </div>
             <div>
@@ -197,7 +194,7 @@ export const StripePaymentModal = ({ booking, court, venue, slot, onClose }) => 
                 value={cvc}
                 onChange={(e) => setCvc(e.target.value)}
                 placeholder="•••"
-                className="w-full px-3.5 py-2 bg-slate-800/60 border border-slate-700/80 rounded-xl text-sm font-medium text-white focus:outline-none focus:border-emerald-500"
+                className="neo-input w-full px-3.5 py-2.5 text-sm"
               />
             </div>
           </div>
@@ -207,7 +204,7 @@ export const StripePaymentModal = ({ booking, court, venue, slot, onClose }) => 
             <button
               type="submit"
               disabled={processing || success}
-              className="w-full py-3 px-4 btn-primary text-sm font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-60"
+              className="btn-primary w-full py-3"
             >
               {processing ? (
                 <>
@@ -215,15 +212,15 @@ export const StripePaymentModal = ({ booking, court, venue, slot, onClose }) => 
                   <span>Processing Payment...</span>
                 </>
               ) : success ? (
-                <span>Payment Verified! Submitting for Owner Approval...</span>
+                <span>Payment received — sending for venue approval…</span>
               ) : (
                 <span>Pay ₹{booking.totalAmount || court.pricePerHour} with Stripe</span>
               )}
             </button>
           </div>
 
-          <div className="text-center text-[11px] text-slate-400 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl">
-            ⚡ <strong>Turf Creator Confirmation:</strong> Once payment succeeds, the arena creator will review & confirm your match pass. Full refund guaranteed if declined.
+          <div className="rounded-xl border border-amber-400/20 bg-amber-400/[0.07] p-3 text-center text-xs text-slate-300">
+            <strong>Venue confirmation:</strong> after payment, the venue reviews and confirms your booking. If the venue declines, a refund is initiated.
           </div>
 
         </form>

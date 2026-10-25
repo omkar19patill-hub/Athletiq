@@ -139,7 +139,7 @@ export const BookingRequirementForm = ({ slot, court, venue, onClose }) => {
               required
               value={playersCount}
               onChange={(e) => setPlayersCount(e.target.value)}
-              className="w-36 px-3.5 py-2 bg-slate-800/60 border border-slate-700/80 rounded-xl text-sm font-semibold text-white focus:outline-none focus:border-emerald-500"
+              className="w-36 px-3.5 py-2 neo-input rounded-xl text-sm font-semibold text-white"
             />
           </div>
 
@@ -215,7 +215,7 @@ export const BookingRequirementForm = ({ slot, court, venue, onClose }) => {
               value={additionalNotes}
               onChange={(e) => setAdditionalNotes(e.target.value)}
               placeholder="e.g. Requesting extra water, referee whistle, or changing room access..."
-              className="w-full px-3.5 py-2 bg-slate-800/60 border border-slate-700/80 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+              className="w-full px-3.5 py-2 neo-input rounded-xl text-xs text-white placeholder:text-slate-500"
             />
           </div>
 

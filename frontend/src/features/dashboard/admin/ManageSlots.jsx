@@ -106,13 +106,13 @@ export const ManageSlots = () => {
           <div className="absolute top-0 right-0 w-80 h-80 bg-cyan/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan/10 border border-cyan/30 text-cyan text-xs font-mono font-bold uppercase tracking-wider mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan/10 border border-cyan/30 text-cyan text-xs font-bold uppercase tracking-wider mb-3">
               <Clock className="w-3.5 h-3.5" /> ARENA SCHEDULING & CAPACITY MATRIX
             </div>
-            <h1 className="text-3xl md:text-4xl font-black font-display text-white tracking-tight uppercase">
+            <h1 className="text-3xl md:text-4xl font-bold font-display text-white tracking-tight">
               Tactical Slot Controller
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 font-mono">
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               Batch produce match hours, lock blackout periods, and optimize floodlight peak slots
             </p>
           </div>
@@ -124,7 +124,7 @@ export const ManageSlots = () => {
           <div className="lg:col-span-4 glass-panel border-white/10 p-6 rounded-3xl shadow-2xl space-y-5 relative overflow-hidden">
             <div className="flex items-center gap-2 border-b border-white/10 pb-4">
               <Sliders className="w-4 h-4 text-volt" />
-              <h3 className="text-sm font-black font-display text-white uppercase tracking-wider">
+              <h3 className="text-sm font-bold font-display text-white tracking-wider">
                 Bulk Generator HUD
               </h3>
             </div>
@@ -136,7 +136,7 @@ export const ManageSlots = () => {
                   value={selectedVenueId}
                   onChange={(e) => setSelectedVenueId(e.target.value)}
                   required
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-sm text-white focus:outline-none focus:border-volt font-sans"
+                  className="w-full px-3.5 py-2.5 neo-input rounded-xl text-sm text-white font-sans"
                 >
                   <option value="" className="bg-slate-900 text-slate-300">Choose Venue</option>
                   {venues.map((v) => (
@@ -152,7 +152,7 @@ export const ManageSlots = () => {
                   onChange={(e) => setSelectedCourtId(e.target.value)}
                   required
                   disabled={courts.length === 0}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-sm text-white focus:outline-none focus:border-volt font-sans disabled:opacity-40"
+                  className="w-full px-3.5 py-2.5 neo-input rounded-xl text-sm text-white font-sans disabled:opacity-40"
                 >
                   <option value="" className="bg-slate-900 text-slate-300">Choose Court</option>
                   {courts.map((c) => (
@@ -169,7 +169,7 @@ export const ManageSlots = () => {
                     required
                     value={bulkData.startDate}
                     onChange={(e) => setBulkData({ ...bulkData, startDate: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white/[0.04] border border-white/15 rounded-xl text-xs text-white focus:outline-none focus:border-volt"
+                    className="w-full px-3.5 py-2 neo-input rounded-xl text-xs text-white"
                   />
                 </div>
                 <div>
@@ -179,7 +179,7 @@ export const ManageSlots = () => {
                     required
                     value={bulkData.endDate}
                     onChange={(e) => setBulkData({ ...bulkData, endDate: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white/[0.04] border border-white/15 rounded-xl text-xs text-white focus:outline-none focus:border-volt"
+                    className="w-full px-3.5 py-2 neo-input rounded-xl text-xs text-white"
                   />
                 </div>
               </div>
@@ -192,7 +192,7 @@ export const ManageSlots = () => {
                     required
                     value={bulkData.slotStartTime}
                     onChange={(e) => setBulkData({ ...bulkData, slotStartTime: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white/[0.04] border border-white/15 rounded-xl text-xs text-white focus:outline-none focus:border-volt"
+                    className="w-full px-3.5 py-2 neo-input rounded-xl text-xs text-white"
                   />
                 </div>
                 <div>
@@ -202,7 +202,7 @@ export const ManageSlots = () => {
                     required
                     value={bulkData.slotEndTime}
                     onChange={(e) => setBulkData({ ...bulkData, slotEndTime: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white/[0.04] border border-white/15 rounded-xl text-xs text-white focus:outline-none focus:border-volt"
+                    className="w-full px-3.5 py-2 neo-input rounded-xl text-xs text-white"
                   />
                 </div>
               </div>
@@ -212,7 +212,7 @@ export const ManageSlots = () => {
                 <select
                   value={bulkData.slotDurationMinutes}
                   onChange={(e) => setBulkData({ ...bulkData, slotDurationMinutes: parseInt(e.target.value, 10) })}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-sm text-white focus:outline-none focus:border-volt font-sans"
+                  className="w-full px-3.5 py-2.5 neo-input rounded-xl text-sm text-white font-sans"
                 >
                   <option value={60} className="bg-slate-900 text-white">60 Minutes Standard Match</option>
                   <option value={120} className="bg-slate-900 text-white">120 Minutes Extended Tournament</option>
@@ -222,7 +222,7 @@ export const ManageSlots = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-3.5 bg-gradient-to-r from-volt to-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-neon-volt hover:scale-105 transition-all disabled:opacity-50 font-sans"
+                className="w-full py-3.5 bg-gradient-to-r from-volt to-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl shadow-neon-volt hover:scale-105 transition-all disabled:opacity-50 font-sans"
               >
                 {submitting ? 'Generating Schedule...' : 'Generate Batch Slots'}
               </button>
@@ -233,8 +233,8 @@ export const ManageSlots = () => {
           <div className="lg:col-span-8 glass-panel border-white/10 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
               <div>
-                <h3 className="text-base font-black font-display uppercase tracking-wider text-white">Court Slot Matrix</h3>
-                <p className="text-xs text-slate-400 font-mono">Live match slots for the selected pitch</p>
+                <h3 className="text-base font-bold font-display tracking-wider text-white">Court Slot Matrix</h3>
+                <p className="text-xs text-slate-400">Live match slots for the selected pitch</p>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-cyan" />
@@ -242,7 +242,7 @@ export const ManageSlots = () => {
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="px-3 py-1.5 bg-white/[0.06] border border-white/20 rounded-xl text-xs font-mono font-bold text-white focus:outline-none focus:border-cyan"
+                  className="px-3 py-1.5 neo-input rounded-xl text-xs font-mono font-bold text-white"
                 />
               </div>
             </div>
@@ -255,7 +255,7 @@ export const ManageSlots = () => {
               <div className="p-16 text-center bg-white/[0.02] border border-dashed border-white/10 rounded-2xl">
                 <AlertCircle className="w-10 h-10 text-slate-500 mx-auto mb-3" />
                 <p className="text-sm font-bold text-white font-display">NO SLOTS IN CURRENT TIMELINE</p>
-                <p className="text-xs text-slate-400 mt-1 font-mono">No operational hours generated for this court on {selectedDate}. Use the generator to batch create slots.</p>
+                <p className="text-xs text-slate-400 mt-1">No operational hours generated for this court on {selectedDate}. Use the generator to batch create slots.</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -270,10 +270,10 @@ export const ManageSlots = () => {
                         'bg-white/[0.02] border-white/10 text-slate-500'
                     }`}
                   >
-                    <span className="text-xs font-mono font-black tracking-wider text-white">
+                    <span className="text-xs font-bold tracking-wider text-white">
                       {s.startTime.substring(0, 5)} - {s.endTime.substring(0, 5)}
                     </span>
-                    <span className={`text-[10px] font-mono font-black uppercase tracking-wider my-1.5 px-2 py-0.5 rounded-full ${
+                    <span className={`text-[10px] font-bold uppercase tracking-wider my-1.5 px-2 py-0.5 rounded-full ${
                       s.slotStatus === 'AVAILABLE' ? 'bg-volt/20 text-volt' :
                       s.slotStatus === 'BLOCKED' ? 'bg-amber-400/20 text-amber-400' :
                       'bg-white/10 text-slate-400'

@@ -71,13 +71,13 @@ export const Profile = () => {
           <div className="absolute top-0 right-0 w-80 h-80 bg-volt/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-volt/10 border border-volt/30 text-volt text-xs font-mono font-bold uppercase tracking-wider mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-volt/10 border border-volt/30 text-volt text-xs font-bold uppercase tracking-wider mb-3">
               <User className="w-3.5 h-3.5" /> ATHLETE PROFILE & BIOMETRICS
             </div>
-            <h1 className="text-3xl md:text-4xl font-black font-display text-white tracking-tight uppercase">
+            <h1 className="text-3xl md:text-4xl font-bold font-display text-white tracking-tight">
               Account Security & Profile
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 font-mono">
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               Manage your matchday personal telemetry, notification contact, and gate pass authentication
             </p>
           </div>
@@ -101,7 +101,7 @@ export const Profile = () => {
           <div className="glass-panel border-white/10 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-5 relative overflow-hidden">
             <div className="flex items-center gap-2 border-b border-white/10 pb-4">
               <User className="w-4 h-4 text-volt" />
-              <h3 className="text-sm font-black font-display text-white uppercase tracking-wider">
+              <h3 className="text-sm font-bold font-display text-white tracking-wider">
                 Personal Credentials
               </h3>
             </div>
@@ -124,7 +124,7 @@ export const Profile = () => {
                   required
                   value={profileData.firstName}
                   onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-volt font-sans text-sm"
+                  className="w-full px-3.5 py-2.5 neo-input rounded-xl text-white placeholder-slate-500 font-sans text-sm"
                 />
               </div>
 
@@ -135,7 +135,7 @@ export const Profile = () => {
                   required
                   value={profileData.lastName}
                   onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-volt font-sans text-sm"
+                  className="w-full px-3.5 py-2.5 neo-input rounded-xl text-white placeholder-slate-500 font-sans text-sm"
                 />
               </div>
 
@@ -146,14 +146,14 @@ export const Profile = () => {
                   required
                   value={profileData.phone}
                   onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-volt font-sans text-sm"
+                  className="w-full px-3.5 py-2.5 neo-input rounded-xl text-white placeholder-slate-500 font-sans text-sm"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={submittingProfile}
-                className="w-full py-3.5 bg-gradient-to-r from-volt to-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-neon-volt hover:scale-105 transition-all disabled:opacity-50 font-sans"
+                className="w-full py-3.5 bg-gradient-to-r from-volt to-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl shadow-neon-volt hover:scale-105 transition-all disabled:opacity-50 font-sans"
               >
                 {submittingProfile ? 'Saving Changes...' : 'Update Athlete Info'}
               </button>
@@ -164,7 +164,7 @@ export const Profile = () => {
           <div className="glass-panel border-white/10 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-5 relative overflow-hidden">
             <div className="flex items-center gap-2 border-b border-white/10 pb-4">
               <KeyRound className="w-4 h-4 text-cyan" />
-              <h3 className="text-sm font-black font-display text-white uppercase tracking-wider">
+              <h3 className="text-sm font-bold font-display text-white tracking-wider">
                 Security & Passcode
               </h3>
             </div>
@@ -178,7 +178,7 @@ export const Profile = () => {
                   value={passwordData.currentPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                   placeholder="••••••••"
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan font-sans text-sm"
+                  className="w-full px-3.5 py-2.5 neo-input rounded-xl text-white placeholder-slate-500 font-sans text-sm"
                 />
               </div>
 
@@ -191,7 +191,7 @@ export const Profile = () => {
                   value={passwordData.newPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   placeholder="•••••••• (Min 8 chars)"
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/15 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan font-sans text-sm"
+                  className="w-full px-3.5 py-2.5 neo-input rounded-xl text-white placeholder-slate-500 font-sans text-sm"
                 />
               </div>
 
